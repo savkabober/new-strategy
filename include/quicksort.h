@@ -7,14 +7,14 @@ using namespace std;
 
 namespace quicksort {
     void swap(double &a, double &b) {
-        static double c;
+        double c;
         c = a;
         a = b;
         b = c;
     }
     int partition(double *arr, int low, int high) {
-        static double pivot;
-        static int i, j;
+        double pivot;
+        int i, j;
         pivot = arr[high];
         i = low - 1;
         for (j = low; j < high; j++) {
