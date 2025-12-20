@@ -84,8 +84,45 @@ namespace auxiliary {
     {
         return numAux::windDownAngle((a - b).arg() - (c - b).arg());
     }
-    int circlesIntersection(Point p1, Point p2, double r1, double r2) {
+    //возвращает пересечения двух окружностей
+    int circlesIntersection(Point *prod, Point p1, Point p2, double r1, double r2) {
         double d = (p1 - p2).mag();
-
+        if (d > r1 + r2) {
+            return 0;
+        }
+        if (d == r1 + r2) {
+            prod[0] = p1 + (p2 - p1) * r1;
+            return 1;
+        }
+        double a = (r1 * r1 - r2 * r2 + d * d) / (2 * d);
+        double h = sqrtf(r1 * r1 - a * a);
+        double x = p1.x + a * (p2.x - p1.x) / d;
+        double y = p1.y + a * (p2.y - p1.y) / d;
+        prod[0].x = x + h * (p2.y - p1.y) / d;
+        prod[0].y = y - h * (p2.x - p1.x) / d;
+        prod[1].x = x - h * (p2.y - p1.y) / d;
+        prod[1].y = y + h * (p2.x - p1.x) / d;
+        return 2;
     }
+    //возвращает касательные через точку p к окружности c радиуса r 
+    int get_tangent_points(Point *prod, Point p, Point c, double r)
+    {
+        return circlesIntersection(prod, c, (p + c) / 2, r, (p - c).mag() / 2);;
+    }
+    // Point nearest_point_on_poly(Point p, Point *poly, int ed_n)
+    // {
+    //     double min_ = -1, d;
+    //     Point ans(0, 0), pnt(0, 0);
+    //     for (int i = 0; i < ed_n; i++)
+    //     {
+    //         pnt = closest_point_on_line(poly[i], poly[i > 0 ? i - 1 : ed_n - 1], p);
+    //         d = abs(pnt - p);
+    //         if (d < min_ || min_ < 0)
+    //         {
+    //             min_ = d;
+    //             ans = pnt;
+    //         }
+    //     }
+    //     return ans;
+    // }
 }
