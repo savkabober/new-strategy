@@ -105,24 +105,40 @@ namespace auxiliary {
         return 2;
     }
     //возвращает касательные через точку p к окружности c радиуса r 
-    int get_tangent_points(Point *prod, Point p, Point c, double r)
+    int getTangentPoints(Point *prod, Point p, Point c, double r)
     {
         return circlesIntersection(prod, c, (p + c) / 2, r, (p - c).mag() / 2);;
     }
-    // Point nearest_point_on_poly(Point p, Point *poly, int ed_n)
-    // {
-    //     double min_ = -1, d;
-    //     Point ans(0, 0), pnt(0, 0);
-    //     for (int i = 0; i < ed_n; i++)
-    //     {
-    //         pnt = closest_point_on_line(poly[i], poly[i > 0 ? i - 1 : ed_n - 1], p);
-    //         d = abs(pnt - p);
-    //         if (d < min_ || min_ < 0)
-    //         {
-    //             min_ = d;
-    //             ans = pnt;
-    //         }
-    //     }
-    //     return ans;
-    // }
+    //возвращает ближайшую к многоугольнику точку
+    Point nearestPointOnPoly(Point p, Point *poly, int n)
+    {
+        double minD, d;
+        Point ans, pnt;
+        ans = closestPointOnLine(poly[0], poly[n - 1], p);
+        minD = (ans - p).mag();
+        for (int i = 1; i < n; i++)
+        {
+            pnt = closestPointOnLine(poly[i], poly[i - 1], p);
+            d = (pnt - p).mag();
+            if (d < minD)
+            {
+                minD = d;
+                ans = pnt;
+            }
+        }
+        return ans;
+    }
+    //возвращает, находится ли точка в выпуклом многоугольнике
+    bool isPointInsidePoly(Point p, Point *poly, int n)
+    {
+        double old_sign = numAux::sgn(((p - poly[n - 1]) * (poly[0] - poly[n - 1])).z);
+        for (int i = 1; i < n; i++)
+        {
+            if (old_sign != numAux::sgn(((p - poly[i - 1]) * (poly[i] - poly[i - 1])).z))
+            {
+                return false;
+            }
+        }
+        return true;
+    }
 }
