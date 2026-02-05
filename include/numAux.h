@@ -120,7 +120,38 @@ namespace numAux {
         return 2;
     }
     //решить уравнение 4 степени
-    // int solveFour(double *prod, double a, double b, double c, double d, double e) {
-
-    // }
+    int solveFour(double *prod, double a, double b, double c, double d, double e) {
+        if (a == 0) {
+            return solveThree(prod, b, c, d, e);
+        }
+        b /= a;
+        c /= a;
+        d /= a;
+        e /= a;
+        double A = -3 * b * b / 8 + c, B = b * b * b / 8 - b * c / 2 + d, C = -3 * b * b * b * b / 256 + c * b * b / 16 - b * d / 4 + e;
+        int nThree = solveThree(prod, 1, 5 * A / 2, 2 * A * A - C, A * A * A / 2 - A * C / 2 - B * B / 8);
+        double y = prod[0];
+        for (int i = 1; i < nThree; i++) {
+            if (prod[i] > y) {
+                y = prod[i];
+            }
+        }
+        int nRoots = 1;
+        if (B == 0) {
+            if (A * A < 4 * C) return 0;
+            if (C == 0) {
+                prod[0] = -b / 4;
+                if (A < 0) {
+                    prod[1] = -b / 4 + sqrt(-A);
+                    prod[2] = -b / 4 - sqrt(-A);
+                    return 3;
+                }
+                return 1;
+            }
+            if (A < 0) {
+                double s1 = sqrt(A * A - 4 * C), s2;
+                s2 = sqrt(-A - s1);
+            }
+        }
+    }
 }
