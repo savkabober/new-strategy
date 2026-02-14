@@ -154,6 +154,7 @@ namespace numAux {
             }
             return 0;
         }
+        //cout << 1 << " " << 5 * A / 2 << " " << 2 * A * A - C << " " << A * A * A / 2 - A * C / 2 - B * B / 8 << endl;
         double y = prod[solveThree(prod, 1, 5 * A / 2, 2 * A * A - C, A * A * A / 2 - A * C / 2 - B * B / 8) - 1];
         double D = 256 * C * C * C - 128 * A * A * C * C + 144 * A * B * B * C - 27 * B * B * B * B + 16 * A * A * A * A * C - 4 * A * A * A * B * B;
         s1 = sqrt(A + 2 * y);
@@ -174,20 +175,50 @@ namespace numAux {
         }
         else {
             if (D == 0) {
+                prod[0] = (prod[0] + prod[1]) / 2;
                 return 1;
             }
             return 2;
         }
         quicksort::quicksort(prod, 0, 4);
         if (D == 0) {
-            int idx = 0, dmin = prod[1] - prod[0];
-            for (int i = 1; i < 3; i++) {
-                if (prod[i + 1] - prod[i] < dmin) {
-                    idx = i;
+            int idx = 0, dmin = prod[1] - prod[0], l;
+            l = prod[2] - prod[1];
+            if (l < dmin) {
+                dmin = l;
+                idx = 1;
+            }
+            l = prod[3] - prod[2];
+            if (l < dmin) {
+                idx = 2;
+            }
+            double p = (prod[idx] + prod[idx + 1]) / 2, b1 = b + p, c1 = c + b * p + p * p, d1 = d + c * p + b * p * p + p * p * p;
+            double Q = (b1 * b1 - 3 * c1) / 9, R = (2 * b1 * b1 * b1 - 9 * b1 * c1 + 27 * d1) / 54;
+            double S = Q * Q * Q - R * R;
+            for (int i = idx; i < 3; i++) {
+                prod[i] = prod[i + 1];
+            }
+            prod[idx] = p;
+            if (S == 0) {
+                idx = 0;
+                if (prod[2] - prod[1] < prod[1] - prod[0]) {
+                    idx = 1;
+                }
+                double b2 = b1 + prod[idx], c2 = c1 + b1 * prod[idx] + prod[idx] * prod[idx];
+                S = b2 * b2 - 4 * c2;
+                for (int i = idx; i < 2; i++) {
+                    prod[i] = prod[i + 1];
+                }
+                if (S == 0) {
+                    return 1;
+                }
+                else {
+                    return 2;
                 }
             }
-            double p = (prod[idx] + prod[idx + 1]) / 2;
-            return solveThree(prod, 1, b + p, c + b * p + p * p, d + c * p + b * p * p + p * p * p);
+            else {
+                return 3;
+            }
         }
         return 4;
     }
