@@ -32,7 +32,7 @@
 #define OBSTACLE_K 1e2
 #define POW_BASE 1.003
 //some math constants
-#define EPSILON 1e-10
+#define EPSILON 1e-5
 #define INF 1e30
 //physycs
 // #define DRIBBLER_R 0.006
