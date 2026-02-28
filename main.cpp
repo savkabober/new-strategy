@@ -7,7 +7,7 @@ int main()
     Timer timer;
     timer.reset();
     for (long i = 0; i < 1e6; i++) {
-        numAux::solveFour(prod, 1, -21, 148, -384, 256);
+        numAux::solveEq(prod, 1, -21, 148, -384, 256);
     }
     time = timer.time();
     cout << time << endl;
