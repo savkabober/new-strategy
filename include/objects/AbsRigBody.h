@@ -11,11 +11,11 @@ class AbsRigBody : public Circle {
     public:
     AbsRigBody(Point p = Point(), double r = 0, Point v = Point()) : Circle(p, r), vel(v), {}
     //геттеры
-    Point get_vel() const {
+    Point getVel() const {
         return vel;
     }
     //сеттеры
-    void set_vel(const Point& v) {
+    void setVel(const Point& v) {
         vel = v;
     }
 };

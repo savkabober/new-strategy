@@ -22,11 +22,11 @@ namespace solvers {
     }
     //добавил метод ньютона для численного решения системы нелинейных уравнений
     int newton(void (*jac)(void (*)(double*, double*, double*), double*, double*, double*, double*, int, double), 
-        void (*f)(double*, double*, double*), double *args, double *x, int n, double tol = 1e-7, int max_iter = 100, double d = 1e-7) {
+        void (*f)(double*, double*, double*), double *args, double *x, int n, double tol = 1e-7, int maxIter = 100, double d = 1e-7) {
         int i, j;
         bool flag;
         double jacobian[n * n], fx[n], dx[n];
-        for(i = 0; i < max_iter; i++) {
+        for(i = 0; i < maxIter; i++) {
             jac(f, x, jacobian, args, fx, n, d);
             flag = true;
             for(j = 0; j < n; j++) {
@@ -38,7 +38,7 @@ namespace solvers {
                 return 2;
             }
 
-            if(gauss_sovle(dx, jacobian, fx, n) == 0) {
+            if(gaussSovle(dx, jacobian, fx, n) == 0) {
                 return 1;
             }
             for(j = 0; j < n; j++) {

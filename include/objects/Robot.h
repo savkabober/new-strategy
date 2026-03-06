@@ -14,37 +14,37 @@ class Robot : public AbsRigBody {
     int active;
     Point control;
     public:
-    Robot(Point p = Point(), double r = ROBOT_R, Point v = Point(), int id = 0, int t = 0) : AbsRigBody(p, r, v), r_id(id), team(t) {}
+    Robot(Point p = Point(), double r = ROBOT_R, Point v = Point(), int i = 0, int t = 0) : AbsRigBody(p, r, v), id(i), team(t) {}
     //геттеры
-    int get_id() const {
+    int getId() const {
         return id;
     }
-    int get_team() const {
+    int getTeam() const {
         return team;
     }
-    int get_regime() const {
+    int getRegime() const {
         return regime;
     }
-    int get_active() const {
+    int getActive() const {
         return active;
     }
-    Point get_control() const {
+    Point getControl() const {
         return control;
     }
     //сеттеры
-    void set_id(int i) {
+    void setId(int i) {
         id = i;
     }
-    void set_team(int t) {
+    void setTeam(int t) {
         team = t;
     }
-    void set_regime(int r) {
+    void setRegime(int r) {
         regime = r;
     }
-    void set_active(int a) {
+    void setActive(int a) {
         active = a;
     }
-    void set_control(const Point& c) {
+    void setControl(const Point& c) {
         control = c;
     }
 };

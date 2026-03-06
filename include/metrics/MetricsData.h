@@ -7,8 +7,14 @@
 #include "../objects/Circle.h"
 #include "../objects/AbsRigBody.h"
 #include "../objects/Rect.h"
+#include "../objects/Robot.h"
 
 struct MetricsData {
-    int n;
-    Circle objects[2 * MAX_ROBOT_COUNT + 1];
+    Point pos, vel, endPos, endVel;
+    int nEnemies;
+    AbsRigBody enemies[MAX_ROBOT_COUNT];
+    double *t, *x;
+    Point *a, *v, *r;
+    int nMax;
+    double safeDist;
 }

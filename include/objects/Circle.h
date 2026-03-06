@@ -11,11 +11,11 @@ class Circle : public Object {
     public:
     Circle(Point p = Point(), double r = 0) : Object(p), rad(r) {}
     //геттеры
-    Point get_rad() const {
+    Point getRad() const {
         return rad;
     }
     //сеттеры
-    void set_rad(double r) {
+    void setRad(double r) {
         rad = r;
     }
 };

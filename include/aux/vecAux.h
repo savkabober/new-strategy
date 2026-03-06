@@ -8,7 +8,7 @@
 
 using namespace std;
 
-namespace auxiliary {
+namespace vecAux {
     //возвращает ближайшую точку к прямой. Типы: 'S' - сегмент, 'R' - луч (из 1 точки во вторую), 'L' - прямая
     Point closestPointOnLine(const Point &p1, const Point &p2, const Point &p, char type = 'S') {
         double prj = (p2 - p1)^(p-p1);
@@ -95,10 +95,10 @@ namespace auxiliary {
     //возвращает, находится ли точка в выпуклом многоугольнике
     bool isPointInsidePoly(const Point& p, const Point *poly, int n)
     {
-        double old_sign = numAux::sgn(((p - poly[n - 1]) * (poly[0] - poly[n - 1])).z);
+        double oldSign = numAux::sgn(((p - poly[n - 1]) * (poly[0] - poly[n - 1])).z);
         for (int i = 1; i < n; i++)
         {
-            if (old_sign != numAux::sgn(((p - poly[i - 1]) * (poly[i] - poly[i - 1])).z))
+            if (oldSign != numAux::sgn(((p - poly[i - 1]) * (poly[i] - poly[i - 1])).z))
             {
                 return false;
             }
@@ -106,7 +106,7 @@ namespace auxiliary {
         return true;
     }
     //Получить время пересечения параболы и окружности
-    inline int parabolaCircleIntersection(double *prod, double rad, const const Point& a, Point v, Point r) {
+    inline int parabolaCircleIntersection(double *prod, double rad, const const Point& a, const Point& v, const Point& r) {
         return numAux::solveEq(prod, a.mag2() / 4, a^v, a^r + v.mag2(), 2 * v^r, r.mag2() - rad * rad);
     }
 }

@@ -148,7 +148,7 @@ namespace numAux {
         return sqrt(summ);
     }
     //решить систему уравнений методом гаусса
-    int gauss_sovle(double *x, double *a, double *b, int n) {
+    int gaussSovle(double *x, double *a, double *b, int n) {
         double maxV, val, k;
         int maxJ, i1, i2, i, j, p;
         maxV = 0;
