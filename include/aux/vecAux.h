@@ -3,7 +3,6 @@
 */
 #pragma once
 
-#include "baseInclude.h"
 #include "Point.h"
 #include "numAux.h"
 
@@ -45,12 +44,12 @@ namespace auxiliary {
         return false;
     }
     //возвращает нормированный угол между прямыми
-    double getAngleBetweenPoints(Point a, Point b, Point c)
+    double getAngleBetweenPoints(const Point& a, const Point& b, const Point& c)
     {
         return numAux::windDownAngle((a - b).arg() - (c - b).arg());
     }
     //возвращает пересечения двух окружностей
-    int circlesIntersection(Point *prod, Point p1, Point p2, double r1, double r2) {
+    int circlesIntersection(Point *prod, const Point& p1, const Point& p2, double r1, double r2) {
         double d = (p1 - p2).mag();
         if (d > r1 + r2) {
             return 0;
@@ -70,12 +69,12 @@ namespace auxiliary {
         return 2;
     }
     //возвращает касательные через точку p к окружности c радиуса r 
-    int getTangentPoints(Point *prod, Point p, Point c, double r)
+    int getTangentPoints(Point *prod, const Point& p, const Point& c, double r)
     {
         return circlesIntersection(prod, c, (p + c) / 2, r, (p - c).mag() / 2);;
     }
     //возвращает ближайшую к многоугольнику точку
-    Point nearestPointOnPoly(Point p, Point *poly, int n)
+    Point nearestPointOnPoly(const Point& p, const Point *poly, int n)
     {
         double minD, d;
         Point ans, pnt;
@@ -94,7 +93,7 @@ namespace auxiliary {
         return ans;
     }
     //возвращает, находится ли точка в выпуклом многоугольнике
-    bool isPointInsidePoly(Point p, Point *poly, int n)
+    bool isPointInsidePoly(const Point& p, const Point *poly, int n)
     {
         double old_sign = numAux::sgn(((p - poly[n - 1]) * (poly[0] - poly[n - 1])).z);
         for (int i = 1; i < n; i++)
@@ -105,5 +104,9 @@ namespace auxiliary {
             }
         }
         return true;
+    }
+    //Получить время пересечения параболы и окружности
+    inline int parabolaCircleIntersection(double *prod, double rad, const const Point& a, Point v, Point r) {
+        return numAux::solveEq(prod, a.mag2() / 4, a^v, a^r + v.mag2(), 2 * v^r, r.mag2() - rad * rad);
     }
 }

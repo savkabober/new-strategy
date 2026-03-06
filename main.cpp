@@ -1,5 +1,6 @@
-#include "include/numAux.h"
+#include "include/aux/numAux.h"
 #include "include/Timer.h"
+#include "include/Objects/Rect.h"
 
 int main()
 {

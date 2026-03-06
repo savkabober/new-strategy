@@ -3,12 +3,9 @@
 */
 #pragma once
 
-#include "baseInclude.h"
-#include "const.h"
+#include <cmath>
 
 using namespace std;
-
-#define square(x) ((x) * (x))
 
 class Point
 {

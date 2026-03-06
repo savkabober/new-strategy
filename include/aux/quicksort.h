@@ -3,7 +3,6 @@
 */
 #pragma once
 
-#include <vector>
 #include <cmath>
 
 using namespace std;
@@ -38,38 +37,11 @@ namespace quicksort {
     }
     //быстрая сортировка
     void quicksort(double *arr, int low, int high) {
-        static int pivot;
+        int pivot;
         if (low < high - 1) {
             pivot = partition(arr, low, high);
             quicksort(arr, low, pivot);
             quicksort(arr, pivot + 1, high);
         }
     }
-    // int abs_partition(vector<double> &arr, int low, int high) {
-    //     static double pivot;
-    //     static int i, j;
-    //     pivot = abs(arr[high]);
-    //     i = low - 1;
-    //     for (j = low; j < high; j++) {
-    //         if (abs(arr[j]) < pivot) {
-    //             i++;
-    //             if (i != j) {
-    //                 swap(arr[i], arr[j]);
-    //             }
-    //         }
-    //     }
-    //     i++;
-    //     if (i != j) {
-    //         swap(arr[i], arr[j]);
-    //     }
-    //     return i;
-    // }
-    // void abs_quicksort(vector<double> &arr, int low, int high) {
-    //     static int pivot;
-    //     if (low < high) {
-    //         pivot = abs_partition(arr, low, high);
-    //         abs_quicksort(arr, low, pivot - 1);
-    //         abs_quicksort(arr, pivot + 1, high);
-    //     }
-    // }
 }
