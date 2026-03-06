@@ -15,6 +15,8 @@ namespace metrics
     void countSections(unsigned n, const double *x, void *data)
     {
         MetricsData *params = static_cast<MetricsData *>(data);
+        Point *a = params->a, *v = params->v, *r = params->r;
+        double *t = params->t;
         bool compFlag = true;
         for (int i = 0; i < n; i++)
         {
@@ -47,7 +49,7 @@ namespace metrics
                     nMax++;
                     params->a[nMax - 1] = Point();
                     dT = x[2 * i + 1] - tMax;
-                    params->t[nMax - 1] = t[nMax - 1] + dT;
+                    params->t[nMax] = t[nMax - 1] + dT;
                     params->v[nMax] = v[nMax - 1];
                     params->r[nMax] = r[nMax - 1] + v[nMax - 1] * dT;
                 }
@@ -55,10 +57,9 @@ namespace metrics
             params->nMax = nMax;
         }
     }
-    // Время проезда - то, что минимизируем
-    double minimizing(unsigned n, const double *x, double *grad, void *data)
+    // Просчитать все пересечения с препятствиями
+    double countIntersections(unsigned n, const double *x, double *grad, void *data, bool doSafe)
     {
-        countSections(n, x, data);
         MetricsData *params = static_cast<MetricsData *>(data);
         Point pos, vel, *a = params->a, *v = params->v, *r = params->r;
         double result = 0, prod[4], intersection, rad, *t = params->t;
@@ -69,35 +70,57 @@ namespace metrics
             rad = params->enemies[i].getRad();
             pos = params->enemies[i].getPos();
             vel = params->enemies[i].getVel();
-            if ((pos - r[0]).mag() < rad) {
-                isIn = true;
-                intersection = 0;
+            if (doSafe)
+            {
+                if ((pos - r[0]).mag() < rad + params->safeDist)
+                {
+                    isIn = true;
+                    intersection = 0;
+                }
+                else
+                    isIn = false;
             }
-            else {
+            else
+            {
+                if ((pos - r[0]).mag() < rad)
+                    continue;
                 isIn = false;
             }
+
             for (int j = 0; j < nMax; j++)
             {
-                nProd = vecAux::parabolaCircleIntersection(prod, rad + params->safeDist, a[i], v[i] - vel, r[i] - pos);
-                for (int k; k < nProd; k++)
+                nProd = vecAux::parabolaCircleIntersection(prod, rad + params->safeDist * (doSafe), a[j], v[j] - vel, r[j] - pos);
+                for (int k = 0; k < nProd; k++)
                 {
                     if (prod[k] < 0)
                         continue;
-                    if (prod[k] > t[i + 1] - t[i])
+                    if (prod[k] > t[j + 1] - t[j])
                         break;
                     if (!isIn)
                     {
                         isIn = true;
-                        intersection = prod[k] + t[i];
+                        intersection = prod[k] + t[j];
                     }
                     else
                     {
                         isIn = false;
-                        result += prod[k] + t[i] - intersection;
+                        result += prod[k] + t[j] - intersection;
                     }
                 }
             }
         }
+        return result;
+    }
+    // Время проезда - то, что минимизируем
+    double minimizing(unsigned n, const double *x, double *grad, void *data)
+    {
+        countSections(n, x, data);
+        MetricsData *params = static_cast<MetricsData *>(data);
+        Point pos, vel, *a = params->a, *v = params->v, *r = params->r;
+        double result, prod[4], intersection, rad, *t = params->t;
+        int nMax = params->nMax, nProd;
+        bool isIn;
+        result = countIntersections(n, x, grad, data, true);
         result += t[nMax];
         return result;
     }
@@ -113,38 +136,7 @@ namespace metrics
         bool isIn;
         result[0] = (r[nMax] - params->endPos).mag() / MAX_VEL / MAX_VEL * MAX_ACC;
         result[1] = (v[nMax] - params->endVel).mag() / MAX_VEL;
-        result[2] = 0;
-        for (int i = 0; i < params->nEnemies; i++)
-        {
-            rad = params->enemies[i].getRad();
-            pos = params->enemies[i].getPos();
-            vel = params->enemies[i].getVel();
-            if ((pos - r[0]).mag() < rad) {
-                continue;
-            }
-            isIn = false;
-            for (int j = 0; j < nMax; j++)
-            {
-                nProd = vecAux::parabolaCircleIntersection(prod, rad, a[i], v[i] - vel, r[i] - pos);
-                for (int k; k < nProd; k++)
-                {
-                    if (prod[k] < 0)
-                        continue;
-                    if (prod[k] > t[i + 1] - t[i])
-                        break;
-                    if (!isIn)
-                    {
-                        isIn = true;
-                        intersection = prod[k] + t[i];
-                    }
-                    else
-                    {
-                        isIn = false;
-                        result[2] += prod[k] + t[i] - intersection;
-                    }
-                }
-            }
-        }
-        result[2] * MAX_ACC / MAX_VEL;
+        result[2] = countIntersections(n, x, grad, data, false);
+        result[2] *= MAX_ACC / MAX_VEL;
     }
 }
