@@ -6,45 +6,57 @@
 #include "AbsRigBody.h"
 #include "../const.h"
 
-class Robot : public AbsRigBody {
-    protected:
+class Robot : public AbsRigBody
+{
+protected:
     int id;
     int team;
     int regime;
     int active;
     Point control;
-    public:
+
+public:
     Robot(Point p = Point(), double r = ROBOT_R, Point v = Point(), int i = 0, int t = 0) : AbsRigBody(p, r, v), id(i), team(t) {}
-    //геттеры
-    int getId() const {
+    // геттеры
+    int getId() const
+    {
         return id;
     }
-    int getTeam() const {
+    int getTeam() const
+    {
         return team;
     }
-    int getRegime() const {
+    int getRegime() const
+    {
         return regime;
     }
-    int getActive() const {
+    int getActive() const
+    {
         return active;
     }
-    Point getControl() const {
+    Point getControl() const
+    {
         return control;
     }
-    //сеттеры
-    void setId(int i) {
+    // сеттеры
+    void setId(int i)
+    {
         id = i;
     }
-    void setTeam(int t) {
+    void setTeam(int t)
+    {
         team = t;
     }
-    void setRegime(int r) {
+    void setRegime(int r)
+    {
         regime = r;
     }
-    void setActive(int a) {
+    void setActive(int a)
+    {
         active = a;
     }
-    void setControl(const Point& c) {
+    void setControl(const Point &c)
+    {
         control = c;
     }
 };

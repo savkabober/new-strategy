@@ -1,20 +1,24 @@
 cmake_minimum_required(VERSION 3.10)
 project(OptimizationApp)
 
-# Устанавливаем стандарт C++17
+# Стандарт C++17
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Оптимизация (аналог -O3)
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3")
+# Оптимизация для Release сборки
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O2")
 
-# Ищем NLopt
+# 1. Ищем NLopt
 find_package(NLopt REQUIRED)
+
+# 2. Ищем SFML (добавляем эту часть)
+# Указываем компоненты, которые нам нужны
+find_package(SFML 2.5 COMPONENTS graphics window system REQUIRED)
 
 # Описываем исполняемый файл
 add_executable(app main.cpp)
 
-# Подключаем библиотеки к нашему приложению
+# 3. Подключаем библиотеки
 target_link_libraries(app 
     PRIVATE 
         sfml-graphics 
@@ -23,5 +27,4 @@ target_link_libraries(app
         NLopt::nlopt
 )
 
-# Если SFML установлен нестандартно, это поможет найти его заголовки
 target_include_directories(app PRIVATE ${SFML_INCLUDE_DIR})

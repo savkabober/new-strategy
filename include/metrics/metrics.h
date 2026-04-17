@@ -5,19 +5,20 @@
 
 #include "../aux/vecAux.h"
 #include "MetricsData.h"
-#include <ve
+#include <iostream>
 
 using namespace std;
 
 namespace metrics
 {
-    // просчитать все участки езды
+    // Просчитать все участки езды
     void countSections(unsigned n, const double *x, void *data)
     {
         MetricsData *params = static_cast<MetricsData *>(data);
-        Point *a = params->a, *v = params->v, *r = params->r;
-        double *t = params->t;
-        bool compFlag = true;
+        Point *a = params->a, *v = params->v, *r = params->r, *u = params->u, deltaR, aNormal;
+        double *t = params->t, *tMax = params->tMax, prod[4], dT, dMag;
+        int nProd;
+        bool compFlag = true, shortFlag = false;
         for (int i = 0; i < n; i++)
         {
             if (params->x[i] != x[i])
@@ -26,35 +27,93 @@ namespace metrics
                 break;
             }
         }
+        // cout << "compFlag: " << compFlag << endl;
+        for (int i = 0; i < n; i++)
+        {
+            params->x[i] = x[i];
+        }
         if (!compFlag)
         {
-            double dT, tMax, nMax = 0;
-            params->r[0] = params->pos;
-            params->v[0] = params->vel;
-            params->t[0] = 0;
+            r[0] = params->pos;
+            v[0] = params->vel;
+            t[0] = 0;
             for (int i = 0; i < n / 2; i++)
             {
-                nMax++;
-                params->v[nMax] = Point(MAX_VEL * cos(x[2 * i]), MAX_VEL * sin(x[2 * i]));
-                tMax = (v[nMax] - v[nMax - 1]).mag() / MAX_ACC;
-                if (tMax == 0)
-                    params->a[nMax - 1] = Point(MAX_ACC, 0);
+                u[i] = Point(cos(x[2 * i]), sin(x[2 * i]));
+                dMag = (u[i] * MAX_VEL - v[i]).mag();
+                tMax[i] = dMag / MAX_ACC;
+                if (tMax[i] == 0)
+                    a[i] = Point(MAX_ACC, 0);
                 else
-                    params->a[nMax - 1] = (v[nMax] - v[nMax - 1]).unity() * MAX_ACC;
-                dT = min(tMax, x[2 * i + 1]);
-                params->t[nMax] = t[nMax - 1] + dT;
-                params->r[nMax] = r[nMax - 1] + v[nMax - 1] * dT + a[nMax - 1] * dT * dT / 2;
-                if (x[2 * i + 1] > tMax)
                 {
-                    nMax++;
-                    params->a[nMax - 1] = Point();
-                    dT = x[2 * i + 1] - tMax;
-                    params->t[nMax] = t[nMax - 1] + dT;
-                    params->v[nMax] = v[nMax - 1];
-                    params->r[nMax] = r[nMax - 1] + v[nMax - 1] * dT;
+                    a[i] = (u[i] * MAX_VEL - v[i]) / dMag * MAX_ACC;
+                }
+                if (tMax[i] > x[2 * i + 1])
+                {
+                    t[2 * i + 1] = -1;
+                    t[2 * i + 2] = t[2 * i] + x[2 * i + 1];
+                    v[i + 1] = v[i] + a[i] * x[2 * i + 1];
+                    r[2 * i + 2] = r[2 * i] + v[i] * x[2 * i + 1] + a[i] * x[2 * i + 1] * x[2 * i + 1] / 2;
+                }
+                else
+                {
+                    t[2 * i + 1] = t[2 * i] + tMax[i];
+                    v[i + 1] = v[i] + a[i] * tMax[i];
+                    r[2 * i + 1] = r[2 * i] + v[i] * tMax[i] + a[i] * tMax[i] * tMax[i] / 2;
+                    t[2 * i + 2] = t[2 * i + 1] + x[2 * i + 1] - tMax[i];
+                    r[2 + i + 2] = r[2 * i + 1] + v[i + 1] * (x[2 * i + 1] - tMax[i]);
                 }
             }
-            params->nMax = nMax;
+            deltaR = (params->endPos - r[n]);
+            nProd = numAux::solveEq(prod, MAX_ACC * MAX_ACC, 0, -4 * v[n / 2].mag2(), 8 * (v[n / 2] ^ deltaR), -4 * deltaR.mag2());
+            for (int i = 0; i < nProd; i++)
+            {
+                if (prod[i] >= 0)
+                {
+                    prod[0] = prod[i];
+                    break;
+                }
+            }
+            t[n + 2] = t[n] + prod[0];
+            t[n + 1] = -1;
+            a[n / 2] = (deltaR - v[n / 2] * prod[0]) * 2 / (prod[0] * prod[0]);
+            v[n / 2 + 1] = v[n / 2] + a[n / 2] * prod[0];
+            r[n + 2] = params->endPos;
+            // В данный момент просчитаны все участки езды. Начнем брать производную по времени.
+            for (int i = 0; i < n / 2; i++)
+            {
+                // Этот цикл - основной и толстый. В нем собственно перебирается то, какое время мы будем изменять
+                if (t[2 * i + 1] < 0)
+                {
+                    dV[i + 1] = a[i];
+                    dR[i + 1] = v[i + 1];
+                }
+                else
+                {
+                    shortFlag = true;
+                    dR[n / 2] = v[i + 1];
+                    dV[n / 2] = 0;
+                }
+                for (int j = i + 1; j < n / 2 && !shortFlag; j++)
+                {
+                    // А здесь мы запускаем цепочку - от элемента который меняется и до конца
+                    // Важно: если мы дошли до элемента, где есть РПД, мы победили: дальше на скорости цепочка не распространяется,
+                    // а производная перемещения сохраняется
+                    if (t[2 * j + 1] < 0)
+                    {
+                        aNormal = Point(-a[j].y, a[j].x);
+                        dV[j + 1] = (a[j] * (dV[j] ^ a[j]) + aNormal * (dV[j] ^ aNormal) * (tMax[i] - t[2 * i + 2] + t[2 * i]) / tMax[i]) / (MAX_ACC * MAX_ACC);
+                        dR[j + 1] = dR[j] + (dV[j] + dV[j + 1]) * (t[2 * j * 2] - t[2 * j]) / 2;
+                    }
+                    else
+                    {
+                        dT = -(dV[j] ^ a[j]) / MAX_ACC;
+                        dR[n / 2] = dR[j] + (v[j] - v[j + 1]) * dT / 2 + dV[j] * (t[2 * j + 1] - t[2 * j]) / 2;
+                        dV[n / 2] = 0;
+                        shortFlag = true;
+                    }
+                }
+            }
         }
     }
     // Просчитать все пересечения с препятствиями
@@ -63,7 +122,7 @@ namespace metrics
         MetricsData *params = static_cast<MetricsData *>(data);
         Point pos, vel, *a = params->a, *v = params->v, *r = params->r;
         double result = 0, prod[4], intersection, rad, *t = params->t;
-        int nMax = params->nMax, nProd;
+        int nProd;
         bool isIn;
         for (int i = 0; i < params->nEnemies; i++)
         {
@@ -87,8 +146,10 @@ namespace metrics
                 isIn = false;
             }
 
-            for (int j = 0; j < nMax; j++)
+            for (int j = 0; j < n + 2; j++)
             {
+                if (j % 2 && t[j] < 0)
+                    continue;
                 nProd = vecAux::parabolaCircleIntersection(prod, rad + params->safeDist * (doSafe), a[j], v[j] - vel, r[j] - pos);
                 for (int k = 0; k < nProd; k++)
                 {
@@ -118,10 +179,10 @@ namespace metrics
         MetricsData *params = static_cast<MetricsData *>(data);
         Point pos, vel, *a = params->a, *v = params->v, *r = params->r;
         double result, prod[4], intersection, rad, *t = params->t;
-        int nMax = params->nMax, nProd;
+        int nProd;
         bool isIn;
         result = countIntersections(n, x, grad, data, true);
-        result += t[nMax];
+        result += t[n + 2];
         return result;
     }
 
@@ -132,10 +193,10 @@ namespace metrics
         MetricsData *params = static_cast<MetricsData *>(data);
         Point pos, vel, *a = params->a, *v = params->v, *r = params->r;
         double prod[4], intersection, rad, *t = params->t;
-        int nMax = params->nMax, nProd;
+        int nProd;
         bool isIn;
-        result[0] = (r[nMax] - params->endPos).mag() / MAX_VEL / MAX_VEL * MAX_ACC;
-        result[1] = (v[nMax] - params->endVel).mag() / MAX_VEL;
+        result[0] = (v[n / 2 + 1] - params->endVel).x / MAX_VEL;
+        result[1] = (v[n / 2 + 1] - params->endVel).x / MAX_VEL;
         result[2] = countIntersections(n, x, grad, data, false);
         result[2] *= MAX_ACC / MAX_VEL;
     }

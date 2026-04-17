@@ -6,15 +6,15 @@
 #include "../const.h"
 #include "../objects/Circle.h"
 #include "../objects/AbsRigBody.h"
-#include "../objects/Rect.h"
 #include "../objects/Robot.h"
 
 struct MetricsData {
     Point pos, vel, endPos, endVel;
-    int nEnemies;
+    int nEnemies, n;
     AbsRigBody enemies[MAX_ROBOT_COUNT];
-    double *t, *x;
-    Point *a, *v, *r;
-    int nMax;
+    double *t, *x, *tMax;
+    Point *a, *v, *r, *u;
     double safeDist;
-}
+    //все обслуживающее для градиентов
+    Point *dV, *dR;
+};

@@ -5,7 +5,7 @@
 
 //robot movement
 #define MAX_VEL 1500
-#define MAX_ACC 1500
+#define MAX_ACC 1000
 //idk
 #define MAX_ROBOT_COUNT 16
 #define MAX_SOLVER_DEGREE 10    
@@ -16,11 +16,13 @@
 #define FIELD_DY 6000
 #define ZONE_DX 1000
 #define ZONE_DY 2000
-#define GOAL_DY 1000
+#define GOAL_Y 1000
 #define POLARITY 1
+#define PIXELS_X 900
+#define PIXELS_Y 600
 //field info
 #define ALL_TEAMS 0
 #define ALLY 1
 #define ENEMY 2
 //some math constants
-#define EPSILON 1e-10
+#define EPSILON 1e-8
