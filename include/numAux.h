@@ -45,7 +45,11 @@ using namespace std;
 
 namespace numAux {
     //возвращает знак числа
-    #define sgn(x) (x > 0 ? 1 : x < 0 ? -1 : 0)
+    int sgn(double value) {
+        return value > 0 ? 1 : value < 0 ? -1 : 0;
+    }
+    int solveOne(double *prod, double a, double b);
+    int solveTwo(double *prod, double a, double b, double c);
     //возвращает угол, приведенный к диапазону [-2pi, 2pi]
     double windDownAngle(double angle) {
         if (abs(angle) > 2 * M_PI)
@@ -58,9 +62,114 @@ namespace numAux {
         }
         return angle;
     }
+    complex<double> evalPolyComplex(const vector<double> &coefficients, complex<double> value) {
+        complex<double> result = 0.0;
+        for (double coefficient : coefficients) {
+            result = result * value + coefficient;
+        }
+        return result;
+    }
+    double evalPolyReal(const vector<double> &coefficients, double value) {
+        double result = 0.0;
+        for (double coefficient : coefficients) {
+            result = result * value + coefficient;
+        }
+        return result;
+    }
+    int solvePolynomialReal(double *prod, vector<double> coefficients) {
+        static constexpr double root_eps = 1e-7;
+        while (coefficients.size() > 1 && abs(coefficients.front()) < root_eps) {
+            coefficients.erase(coefficients.begin());
+        }
+        const int degree = static_cast<int>(coefficients.size()) - 1;
+        if (degree <= 0) {
+            return 0;
+        }
+        if (degree == 1) {
+            return solveOne(prod, coefficients[0], coefficients[1]);
+        }
+        if (degree == 2) {
+            return solveTwo(prod, coefficients[0], coefficients[1], coefficients[2]);
+        }
+
+        const double leading = coefficients.front();
+        for (double &coefficient : coefficients) {
+            coefficient /= leading;
+        }
+
+        vector<complex<double>> roots(degree);
+        const complex<double> seed(0.4, 0.9);
+        for (int i = 0; i < degree; ++i) {
+            roots[i] = pow(seed, i + 1);
+        }
+
+        for (int iteration = 0; iteration < 80; ++iteration) {
+            bool converged = true;
+            for (int i = 0; i < degree; ++i) {
+                complex<double> denominator = 1.0;
+                for (int j = 0; j < degree; ++j) {
+                    if (i == j) {
+                        continue;
+                    }
+                    denominator *= (roots[i] - roots[j]);
+                }
+                if (abs(denominator) < 1e-12) {
+                    denominator = complex<double>(1e-12, 1e-12);
+                }
+                const complex<double> delta = evalPolyComplex(coefficients, roots[i]) / denominator;
+                roots[i] -= delta;
+                if (abs(delta) > 1e-12) {
+                    converged = false;
+                }
+            }
+            if (converged) {
+                break;
+            }
+        }
+
+        vector<double> realRoots;
+        for (const complex<double> &root : roots) {
+            if (abs(root.imag()) > 1e-6) {
+                continue;
+            }
+
+            double real = root.real();
+            for (int polish = 0; polish < 3; ++polish) {
+                double derivative = 0.0;
+                double value = 0.0;
+                for (size_t i = 0; i < coefficients.size(); ++i) {
+                    value = value * real + coefficients[i];
+                    if (i + 1 < coefficients.size()) {
+                        derivative = derivative * real + coefficients[i] * static_cast<double>(coefficients.size() - i - 1);
+                    }
+                }
+                if (abs(derivative) < 1e-12) {
+                    break;
+                }
+                real -= value / derivative;
+            }
+
+            if (abs(evalPolyReal(coefficients, real)) < 1e-4) {
+                realRoots.push_back(real);
+            }
+        }
+
+        sort(realRoots.begin(), realRoots.end());
+        vector<double> uniqueRoots;
+        for (double root : realRoots) {
+            if (uniqueRoots.empty() || abs(root - uniqueRoots.back()) > 1e-5) {
+                uniqueRoots.push_back(root);
+            }
+        }
+
+        for (size_t i = 0; i < uniqueRoots.size(); ++i) {
+            prod[i] = uniqueRoots[i];
+        }
+        return static_cast<int>(uniqueRoots.size());
+    }
     //решить уравнение 1 степени
     int solveOne(double *prod, double a, double b) {
-        if (a == 0) {
+        if (abs(a) < 1e-12) {
             return 0;
         }
         prod[0] = -b / a;
@@ -68,159 +177,29 @@ namespace numAux {
     }
     //решить уравнение 2 степени
     int solveTwo(double *prod, double a, double b, double c) {
-        if (a == 0) {
+        if (abs(a) < 1e-12) {
             return solveOne(prod, b, c);
         }
         double D = b * b - 4 * a * c;
-        if (D < 0) {
+        if (D < -1e-12) {
             return 0;
         }
-        if (D == 0) {
+        if (abs(D) < 1e-12) {
             prod[0] = -b / (2 * a);
             return 1;
         }
-        prod[0] = (-b - sqrt(D)) / (2 * a);
-        prod[1] = (-b + sqrt(D)) / (2 * a);
+        const double sqrtD = sqrt(max(0.0, D));
+        prod[0] = (-b - sqrtD) / (2 * a);
+        prod[1] = (-b + sqrtD) / (2 * a);
         return 2;
     }
     //решить уравнение 3 степени
     int solveThree(double *prod, double a, double b, double c, double d) {
-        if (a == 0) {
-            return solveTwo(prod, b, c, d);
-        }
-        b /= a;
-        c /= a;
-        d /= a;
-        double Q = (b * b - 3 * c) / 9;
-        double R = (2 * b * b * b - 9 * b * c + 27 * d) / 54;
-        double S = Q * Q * Q - R * R;
-        if (S > 0) {
-            double phi = acos(R / sqrt(Q * Q * Q)) / 3;
-            prod[0] = -2 * sqrt(Q) * cos(phi - 2 * M_PI / 3) - b / 3;
-            prod[1] = -2 * sqrt(Q) * cos(phi) - b / 3;
-            prod[2] = -2 * sqrt(Q) * cos(phi + 2 * M_PI / 3) - b / 3;
-            quicksort::quicksort(prod, 0, 3);
-            return 3;
-        }
-        if (S < 0) {
-            if (Q > 0) {
-                prod[0] = -2 * sgn(R) * sqrt(Q) * cosh(acosh(abs(R) / sqrt(Q * Q * Q)) / 3) - b / 3;
-                return 1;
-            }
-            if (Q < 0) {
-                prod[0] = -2 * sgn(R) * sqrt(-Q) * sinh(asinh(abs(R) / sqrt(-Q * Q * Q)) / 3) - b / 3;
-                return 1;
-            }
-            prod[0] = -cbrt(d - b * b * b / 27) - b / 3;
-            return 1;
-        }
-        prod[0] = -2 * cbrt(R) - b / 3;
-        prod[1] = cbrt(R) - b / 3;
-        quicksort::quicksort(prod, 0, 3);
-        return 2;
+        return solvePolynomialReal(prod, {a, b, c, d});
     }
     //решить уравнение 4 степени
     int solveFour(double *prod, double a, double b, double c, double d, double e) {
-        if (a == 0) {
-            return solveThree(prod, b, c, d, e);
-        }
-        b /= a;
-        c /= a;
-        d /= a;
-        e /= a;
-        double A = -3 * b * b / 8 + c, B = b * b * b / 8 - b * c / 2 + d, C = -3 * b * b * b * b / 256 + c * b * b / 16 - b * d / 4 + e, s1, s2;
-        if (B == 0) {
-            if (A * A < 4 * C) return 0;
-            if (C == 0) {
-                prod[0] = -b / 4;
-                if (A < 0) {
-                    prod[0] = -b / 4 - sqrt(A);
-                    prod[1] = -b / 4;
-                    prod[2] = -b / 4 + sqrt(-A);
-                    return 3;
-                }
-                return 1;
-            }
-            if (A < 0) {
-                s1 = sqrt(A * A - 4 * C);
-                s2 = sqrt((-A - s1) / 2);
-                prod[0] = -b / 4 - s2;
-                prod[1] = -b / 4 + s2;
-                s2 = sqrt((-A + s1) / 2);
-                prod[2] = -b / 4 - s2;
-                prod[3] = -b / 4 + s2;
-                quicksort::quicksort(prod, 0, 4);
-                return 4;
-            }
-            return 0;
-        }
-        //cout << 1 << " " << 5 * A / 2 << " " << 2 * A * A - C << " " << A * A * A / 2 - A * C / 2 - B * B / 8 << endl;
-        double y = prod[solveThree(prod, 1, 5 * A / 2, 2 * A * A - C, A * A * A / 2 - A * C / 2 - B * B / 8) - 1];
-        double D = 256 * C * C * C - 128 * A * A * C * C + 144 * A * B * B * C - 27 * B * B * B * B + 16 * A * A * A * A * C - 4 * A * A * A * B * B;
-        s1 = sqrt(A + 2 * y);
-        s2 = -3 * A - 2 * y + 2 * abs(B) / s1;
-        if (s2 >= 0) {
-            s2 = sqrt(s2);
-            prod[0] = -b / 4 + (-sgn(B) * s1 - s2) / 2;
-            prod[1] = -b / 4 + (-sgn(B) * s1 + s2) / 2;
-        }
-        else {
-            return 0;
-        }
-        s2 = -3 * A - 2 * y - 2 * abs(B) / s1;
-        if (s2 >= 0) {
-            s2 = sqrt(s2);
-            prod[2] = -b / 4 + (sgn(B) * s1 - s2) / 2;
-            prod[3] = -b / 4 + (sgn(B) * s1 + s2) / 2;
-        }
-        else {
-            if (D == 0) {
-                prod[0] = (prod[0] + prod[1]) / 2;
-                return 1;
-            }
-            return 2;
-        }
-        quicksort::quicksort(prod, 0, 4);
-        if (D == 0) {
-            int idx = 0, dmin = prod[1] - prod[0], l;
-            l = prod[2] - prod[1];
-            if (l < dmin) {
-                dmin = l;
-                idx = 1;
-            }
-            l = prod[3] - prod[2];
-            if (l < dmin) {
-                idx = 2;
-            }
-            double p = (prod[idx] + prod[idx + 1]) / 2, b1 = b + p, c1 = c + b * p + p * p, d1 = d + c * p + b * p * p + p * p * p;
-            double Q = (b1 * b1 - 3 * c1) / 9, R = (2 * b1 * b1 * b1 - 9 * b1 * c1 + 27 * d1) / 54;
-            double S = Q * Q * Q - R * R;
-            for (int i = idx; i < 3; i++) {
-                prod[i] = prod[i + 1];
-            }
-            prod[idx] = p;
-            if (S == 0) {
-                idx = 0;
-                if (prod[2] - prod[1] < prod[1] - prod[0]) {
-                    idx = 1;
-                }
-                double b2 = b1 + prod[idx], c2 = c1 + b1 * prod[idx] + prod[idx] * prod[idx];
-                S = b2 * b2 - 4 * c2;
-                for (int i = idx; i < 2; i++) {
-                    prod[i] = prod[i + 1];
-                }
-                if (S == 0) {
-                    return 1;
-                }
-                else {
-                    return 2;
-                }
-            }
-            else {
-                return 3;
-            }
-        }
-        return 4;
+        return solvePolynomialReal(prod, {a, b, c, d, e});
     }
     double deltares(double *f, int n) {
         static double summ;
@@ -285,11 +264,11 @@ namespace numAux {
     //численно приблизить значение якобиана
     void numJac(void (*f)(double*, double*, double*), double *x, double *jac, double *args, double *f0, int n, double d) {
         static int i, j;
-        double f1[n];
+        vector<double> f1(n, 0.0);
         f(x, args, f0);
         for(i = 0; i < n; i++) {
             x[i] += d;
-            f(x, args, f1);
+            f(x, args, f1.data());
             x[i] -= d;
             for(j = 0; j < n; j++) {
                 jac[j * n + i] = (f1[j] - f0[j]) / d;
@@ -301,9 +280,9 @@ namespace numAux {
         void (*f)(double*, double*, double*), double *args, double *x, int n, double tol = 1e-7, int max_iter = 100, double d = 1e-7) {
         static int i, j;
         static bool flag;
-        double jacobian[n * n], fx[n], dx[n];
+        vector<double> jacobian(n * n, 0.0), fx(n, 0.0), dx(n, 0.0);
         for(i = 0; i < max_iter; i++) {
-            jac(f, x, jacobian, args, fx, n, d);
+            jac(f, x, jacobian.data(), args, fx.data(), n, d);
             flag = true;
             for(j = 0; j < n; j++) {
                 if(abs(fx[j]) > tol) {
@@ -314,11 +293,11 @@ namespace numAux {
                 return 2;
             }
 
-            if(gauss_sovle(dx, jacobian, fx, n) == 0) {
+            if(gauss_sovle(dx.data(), jacobian.data(), fx.data(), n) == 0) {
                 return 1;
             }
             for(j = 0; j < n; j++) {
-                x[j] -= dx[j]; 
+                x[j] -= dx[j];
             }
         }
         return 0;

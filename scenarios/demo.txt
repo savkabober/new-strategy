@@ -1,0 +1,12 @@
+name demo
+segment_count 4
+max_segment_count 8
+adaptive_segments 1
+obstacle_radius 320
+start -3400 -1200 250 80
+goal 3350 1250 -180 0
+obstacles 4
+-1200 -350
+-300 950
+900 -850
+1750 500

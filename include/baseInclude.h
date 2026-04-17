@@ -39,8 +39,28 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
-#include <iostream>
+#include <algorithm>
+#include <array>
+#include <chrono>
 #include <cmath>
-#include <string>
-#include <vector>
 #include <complex>
+#include <filesystem>
+#include <fstream>
+#include <functional>
+#include <iomanip>
+#include <iostream>
+#include <limits>
+#include <optional>
+#include <random>
+#include <sstream>
+#include <string>
+#include <thread>
+#include <mutex>
+#include <tuple>
+#include <atomic>
+#include <utility>
+#include <vector>
+
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif

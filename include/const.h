@@ -72,7 +72,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define POW_BASE 1.003
 //some math constants
 #define EPSILON 1e-10
-#define INFINITY 1e30
+#define NUM_INFINITY 1e30
 //physycs
 // #define DRIBBLER_R 0.006
 // #define BALL_R 0.02133
