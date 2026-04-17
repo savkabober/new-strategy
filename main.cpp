@@ -1,4 +1,4 @@
-#include "include/aux/numAux.h"
+#include "include/auxiliary/numAux.h"
 #include "include/Timer.h"
 #include <SFML/Graphics.hpp>
 #include <vector>

@@ -3,7 +3,7 @@
 */
 #pragma once
 
-#include "../aux/vecAux.h"
+#include "../auxiliary/vecAux.h"
 #include "MetricsData.h"
 #include <iostream>
 

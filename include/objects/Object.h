@@ -3,7 +3,7 @@
 */
 #pragma once
 
-#include "../aux/Point.h"
+#include "../auxiliary/Point.h"
 
 class Object
 {

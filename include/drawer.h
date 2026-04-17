@@ -1,6 +1,6 @@
 #include <SFML/Graphics.hpp>
 #include "const.h"
-#include "aux/Point.h"
+#include "auxiliary/Point.h"
 #include "metrics/MetricsData.h"
 #include <iostream>
 
