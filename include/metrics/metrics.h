@@ -61,11 +61,13 @@ namespace metrics
                     v[i + 1] = vMax
                     r[2 * i + 1] = r[2 * i] + v[i] * tMax[i] + a[i] * tMax[i] * tMax[i] / 2;
                     t[2 * i + 2] = t[2 * i + 1] + x[2 * i + 1] - tMax[i];
-                    r[2 + i + 2] = r[2 * i + 1] + v[i + 1] * (x[2 * i + 1] - tMax[i]);
+                    r[2 * i + 2] = r[2 * i + 1] + v[i + 1] * (x[2 * i + 1] - tMax[i]);
                 }
             }
             deltaR = (params->endPos - r[n]);
-            nProd = numAux::solveEq(prod, MAX_ACC * MAX_ACC, 0, -4 * v[n / 2].mag2(), 8 * (v[n / 2] ^ deltaR), -4 * deltaR.mag2());
+            params->vMag = v[n / 2].mag();
+            params->rMag = deltaR.mag();
+            nProd = numAux::solveEq(prod, MAX_ACC * MAX_ACC, 0, -4 * params->vMag * params->vMag, 8 * (v[n / 2] ^ deltaR), -4 * params->rMag * params->rMag);
             for (int i = 0; i < nProd; i++)
             {
                 if (prod[i] >= 0)
@@ -77,7 +79,7 @@ namespace metrics
             t[n + 2] = t[n] + prod[0];
             t[n + 1] = -1;
             a[n / 2] = (deltaR - v[n / 2] * prod[0]) * 2 / (prod[0] * prod[0]);
-            v[n / 2 + 1] = v[n / 2] + a[n / 2] * prod[0];
+            v[n / 2 + 1] = v[n / 2] + a[n / 2] * prod[0]; // = 2 * deltaR / prod[0] - v[n / 2];
             r[n + 2] = params->endPos;
         }
     }
@@ -141,8 +143,8 @@ namespace metrics
     void chainGrad(unsigned n, int i, void *data)
     {
         MetricsData *params = static_cast<MetricsData *>(data);
-        Point *dV = params->dV, *dR = params->dR, *a = params->a, *v = params->v, *r = params->r, aNormal;
-        double *t = params->t, *tMax = params->tMax;
+        Point *dV = params->dV, *dR = params->dR, *a = params->a, *v = params->v, *r = params->r, aNormal, deltaR;
+        double *t = params->t, *tMax = params->tMax, deltaT, dP, dT;
         bool shortFlag = false;
         // В данный момент просчитаны все участки езды. Начнем брать производную по времени.
         if (t[2 * i + 1] < 0)
@@ -175,7 +177,11 @@ namespace metrics
             }
         }
         // мы просчитали цепочку, теперь финальный шаг - найти градиент (внезапно)
-        
+        deltaR = params->endPos - r[n];
+        deltaT = t[n + 2] - t[n];
+        dP = 4 * MAX_ACC * MAX_ACC * deltaT * deltaT * deltaT - 8 * params->vMag * params->vMag * deltaT + 8 * (v[n / 2] ^ deltaR);
+        dT = -(-8 * (v[n / 2] ^ dV[n / 2]) * deltaT * deltaT + 8 * deltaT * ((dV[n / 2] ^ deltaR) - (v[n / 2] ^ dR[n / 2])) + 8 * (deltaR ^ dR[n / 2])) / dP;
+        dV[n / 2 + 1] = -2 * dR[n / 2] / deltaT - 2 * deltaR / (deltaT * deltaT) * dT - dV[n / 2];
     }
 
     // Время проезда - то, что минимизируем

@@ -12,7 +12,7 @@ struct MetricsData {
     Point pos, vel, endPos, endVel;
     int nEnemies, n;
     AbsRigBody enemies[MAX_ROBOT_COUNT];
-    double *t, *x, *tMax;
+    double *t, *x, *tMax, vMag, rMag;
     Point *a, *v, *r;
     double safeDist;
     //все обслуживающее для градиентов
