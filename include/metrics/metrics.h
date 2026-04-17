@@ -15,10 +15,10 @@ namespace metrics
     void countSections(unsigned n, const double *x, void *data)
     {
         MetricsData *params = static_cast<MetricsData *>(data);
-        Point *a = params->a, *v = params->v, *r = params->r, *u = params->u, deltaR, aNormal;
+        Point *a = params->a, *v = params->v, *r = params->r, deltaR, vMax;
         double *t = params->t, *tMax = params->tMax, prod[4], dMag;
         int nProd;
-        bool compFlag = true, shortFlag = false;
+        bool compFlag = true;
         for (int i = 0; i < n; i++)
         {
             if (params->x[i] != x[i])
@@ -39,14 +39,14 @@ namespace metrics
             t[0] = 0;
             for (int i = 0; i < n / 2; i++)
             {
-                u[i] = Point(cos(x[2 * i]), sin(x[2 * i]));
-                dMag = (u[i] * MAX_VEL - v[i]).mag();
+                vMax = Point(cos(x[2 * i]) * MAX_VEL, sin(x[2 * i]) * MAX_VEL);
+                dMag = (vMax - v[i]).mag();
                 tMax[i] = dMag / MAX_ACC;
                 if (tMax[i] == 0)
                     a[i] = Point(MAX_ACC, 0);
                 else
                 {
-                    a[i] = (u[i] * MAX_VEL - v[i]) / dMag * MAX_ACC;
+                    a[i] = (vMax - v[i]) / dMag * MAX_ACC;
                 }
                 if (tMax[i] > x[2 * i + 1])
                 {
@@ -58,7 +58,7 @@ namespace metrics
                 else
                 {
                     t[2 * i + 1] = t[2 * i] + tMax[i];
-                    v[i + 1] = v[i] + a[i] * tMax[i];
+                    v[i + 1] = vMax
                     r[2 * i + 1] = r[2 * i] + v[i] * tMax[i] + a[i] * tMax[i] * tMax[i] / 2;
                     t[2 * i + 2] = t[2 * i + 1] + x[2 * i + 1] - tMax[i];
                     r[2 + i + 2] = r[2 * i + 1] + v[i + 1] * (x[2 * i + 1] - tMax[i]);
@@ -138,48 +138,44 @@ namespace metrics
         return result;
     }
     // Функция просчета цепочки
-    void chainGrad(unsigned n, void *data)
+    void chainGrad(unsigned n, int i, void *data)
     {
         MetricsData *params = static_cast<MetricsData *>(data);
         Point *dV = params->dV, *dR = params->dR, *a = params->a, *v = params->v, *r = params->r, aNormal;
-        double *t = params->t, *tMax = params->tMax; 
-        bool shortFlag;
+        double *t = params->t, *tMax = params->tMax;
+        bool shortFlag = false;
         // В данный момент просчитаны все участки езды. Начнем брать производную по времени.
-        for (int i = 0; i < n / 2; i++)
+        if (t[2 * i + 1] < 0)
         {
-            shortFlag = false;
-            // Этот цикл - основной и толстый. В нем собственно перебирается то, какое время мы будем изменять
-            if (t[2 * i + 1] < 0)
+            dV[i + 1] = a[i];
+            dR[i + 1] = v[i + 1];
+        }
+        else
+        {
+            shortFlag = true;
+            dR[n / 2] = v[i + 1];
+            dV[n / 2] = 0;
+        }
+        for (int j = i + 1; j < n / 2 && !shortFlag; j++)
+        {
+            // А здесь мы запускаем цепочку - от элемента который меняется и до конца
+            // Важно: если мы дошли до элемента, где есть РПД, мы победили: дальше на скорости цепочка не распространяется,
+            // а производная перемещения сохраняется
+            if (t[2 * j + 1] < 0)
             {
-                dV[i + 1] = a[i];
-                dR[i + 1] = v[i + 1];
+                aNormal = Point(-a[j].y, a[j].x);
+                dV[j + 1] = (a[j] * (dV[j] ^ a[j]) + aNormal * (dV[j] ^ aNormal) * (tMax[j] - t[2 * j + 2] + t[2 * j]) / tMax[j]) / (MAX_ACC * MAX_ACC);
+                dR[j + 1] = dR[j] + (dV[j] + dV[j + 1]) * (t[2 * j * 2] - t[2 * j]) / 2;
             }
             else
             {
-                shortFlag = true;
-                dR[n / 2] = v[i + 1];
+                dR[n / 2] = dR[j] + (v[j + 1] - v[j]) * (dV[j] ^ a[j]) / (MAX_ACC * MAX_ACC) / 2 + dV[j] * (t[2 * j + 1] - t[2 * j]) / 2;
                 dV[n / 2] = 0;
+                shortFlag = true;
             }
-            for (int j = i + 1; j < n / 2 && !shortFlag; j++)
-            {
-                // А здесь мы запускаем цепочку - от элемента который меняется и до конца
-                // Важно: если мы дошли до элемента, где есть РПД, мы победили: дальше на скорости цепочка не распространяется,
-                // а производная перемещения сохраняется
-                if (t[2 * j + 1] < 0)
-                {
-                    aNormal = Point(-a[j].y, a[j].x);
-                    dV[j + 1] = (a[j] * (dV[j] ^ a[j]) + aNormal * (dV[j] ^ aNormal) * (tMax[i] - t[2 * i + 2] + t[2 * i]) / tMax[i]) / (MAX_ACC * MAX_ACC);
-                    dR[j + 1] = dR[j] + (dV[j] + dV[j + 1]) * (t[2 * j * 2] - t[2 * j]) / 2;
-                }
-                else
-                {
-                    dR[n / 2] = dR[j] + (v[j + 1] - v[j]) * (dV[j] ^ a[j]) / (MAX_ACC * MAX_ACC) / 2 + dV[j] * (t[2 * j + 1] - t[2 * j]) / 2;
-                    dV[n / 2] = 0;
-                    shortFlag = true;
-                }
-            }
-            // мы просчитали цепочку, теперь финальный шаг - найти градиент (внезапно)
         }
+        // мы просчитали цепочку, теперь финальный шаг - найти градиент (внезапно)
+        
     }
 
     // Время проезда - то, что минимизируем
