@@ -181,7 +181,7 @@ namespace metrics
         deltaT = t[n + 2] - t[n];
         dP = 4 * MAX_ACC * MAX_ACC * deltaT * deltaT * deltaT - 8 * params->vMag * params->vMag * deltaT + 8 * (v[n / 2] ^ deltaR);
         dT = -(-8 * (v[n / 2] ^ dV[n / 2]) * deltaT * deltaT + 8 * deltaT * ((dV[n / 2] ^ deltaR) - (v[n / 2] ^ dR[n / 2])) + 8 * (deltaR ^ dR[n / 2])) / dP;
-        dV[n / 2 + 1] = -2 * dR[n / 2] / deltaT - 2 * deltaR / (deltaT * deltaT) * dT - dV[n / 2];
+        dV[n / 2 + 1] = -dR[n / 2] *2 / deltaT - deltaR *2/ (deltaT * deltaT) * dT - dV[n / 2];
     }
 
     // Время проезда - то, что минимизируем
