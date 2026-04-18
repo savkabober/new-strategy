@@ -41,7 +41,6 @@ int main()
     data.r = rData;
     data.v = vData;
     data.a = aData;
-    data.u = uData;
     data.pos = Point(0, 0);
     data.vel = Point(0, 0);
     data.endPos = Point(1000, 0);

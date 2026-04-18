@@ -58,7 +58,7 @@ namespace metrics
                 else
                 {
                     t[2 * i + 1] = t[2 * i] + tMax[i];
-                    v[i + 1] = vMax
+                    v[i + 1] = vMax;
                     r[2 * i + 1] = r[2 * i] + v[i] * tMax[i] + a[i] * tMax[i] * tMax[i] / 2;
                     t[2 * i + 2] = t[2 * i + 1] + x[2 * i + 1] - tMax[i];
                     r[2 * i + 2] = r[2 * i + 1] + v[i + 1] * (x[2 * i + 1] - tMax[i]);
