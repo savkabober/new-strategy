@@ -5,7 +5,7 @@ TARGET = app.exe
 SRC = main.cpp
 
 $(TARGET): $(SRC)
-	$(CXX) $(SRC) -o $(TARGET) $(LIBS) $(CXXFLAGS) && .\app.exe
+	$(CXX) $(SRC) -o $(TARGET) $(LIBS) $(CXXFLAGS) && .\$(TARGET)
 
 clean:
 	del $(TARGET)

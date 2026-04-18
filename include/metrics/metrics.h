@@ -41,8 +41,9 @@ namespace metrics
             {
                 vMax = Point(cos(x[2 * i]) * MAX_VEL, sin(x[2 * i]) * MAX_VEL);
                 dMag = (vMax - v[i]).mag();
-                tMax[i] = dMag / MAX_ACC;
-                if (tMax[i] == 0)
+                tMax[0] = dMag/MAX_ACC;
+                // cout << "AAAAA: " << tMax[i] << endl;
+               if (tMax[i] == 0)
                     a[i] = Point(MAX_ACC, 0);
                 else
                 {

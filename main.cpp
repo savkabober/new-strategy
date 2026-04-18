@@ -11,18 +11,18 @@ using namespace std;
 
 int main()
 {
-    // double prod[4], time;
-    // Timer timer;
-    // timer.reset();
-    // for (long i = 0; i < 1e6; i++) {
-    //     numAux::solveEq(prod, 1, 2, 3, 4, 5);
-    // }
-    // time = timer.time();
-    // cout << time << endl;
+    double prod[4], time;
+    Timer timer;
+    timer.reset();
+    for (long i = 0; i < 1e6; i++) {
+        numAux::solveEq(prod, 1, 2, 3, 4, 5);
+    }
+    time = timer.time();
+    cout << time << endl;
 
     int nPairs = 4;
 
-    double x[2 * nPairs], xData[2 * nPairs], tData[2 * nPairs + 4], result[3], grad[6 * nPairs];
+    double x[2 * nPairs], xData[2 * nPairs], tData[2 * nPairs + 4], result[3], grad[6 * nPairs],tMaxData[nPairs+1];
     Point rData[2 * nPairs + 4], vData[nPairs + 2], aData[nPairs + 1], uData[nPairs + 1];
 
     x[0] = M_PI / 2;
@@ -48,7 +48,8 @@ int main()
     data.enemies[0] = AbsRigBody(Point(0, 300), ROBOT_R, Point(0, 0));
     data.nEnemies = 1;
     data.n = nPairs * 2;
-
+    data.tMax = tMaxData;
+    
     void *data_ptr = static_cast<void *>(&data);
 
     metrics::constraints(3, result, 2 * nPairs, x, grad, data_ptr);
@@ -75,57 +76,3 @@ int main()
     }
     return 0;
 }
-
-// int main() {
-//     // 1. Создаем окно размером 1000x800 пикселей.
-//     sf::RenderWindow window(sf::VideoMode(1000, 800), "Робот на зеленом поле");
-
-//     // Ограничиваем частоту кадров (FPS), чтобы не перегружать процессор.
-//     window.setFramerateLimit(60);
-
-//     // 2. Определяем цвета для удобства.
-//     sf::Color colorField(34, 139, 34); // ForestGreen (Зеленый)
-//     sf::Color colorObs(220, 20, 60);     // Crimson (Красный)
-
-//     // 3. Главный цикл окна. Он работает, пока окно открыто.
-//     while (window.isOpen()) {
-//         // --- Обработка событий ---
-//         sf::Event event;
-//         // Проверяем, произошли ли какие-то события (нажатие кнопок, мышки и т.д.)
-//         while (window.pollEvent(event)) {
-//             // Если нажали "закрыть" (крестик), закрываем окно.
-//             if (event.type == sf::Event::Closed)
-//                 window.close();
-//         }
-
-//         // --- Отрисовка ---
-
-//         // 4. Очищаем экран зеленым цветом поля.
-//         window.clear(colorField);
-
-//         // 5. РИСУЕМ КРУЖКИ (Препятствия)
-
-//         // Кружок 1 (Маленький, в центре)
-//         sf::CircleShape obstacle1(40.f);     // Радиус 40
-//         obstacle1.setFillColor(colorObs);   // Красный цвет
-//         obstacle1.setPosition(500, 400);    // Координаты X, Y (верхний левый угол)
-//         window.draw(obstacle1);             // Выводим на экран
-
-//         // Кружок 2 (Большой, слева вверху)
-//         sf::CircleShape obstacle2(70.f);     // Радиус 70
-//         obstacle2.setFillColor(colorObs);   // Красный цвет
-//         obstacle2.setPosition(150, 150);    // Координаты X, Y
-//         window.draw(obstacle2);             // Выводим на экран
-
-//         // Кружок 3 (Средний, справа внизу)
-//         sf::CircleShape obstacle3(55.f);     // Радиус 55
-//         obstacle3.setFillColor(colorObs);   // Красный цвет
-//         obstacle3.setPosition(750, 600);    // Координаты X, Y
-//         window.draw(obstacle3);             // Выводим на экран
-
-//         // 6. Отображаем всё, что нарисовали, на экране.
-//         window.display();
-//     }
-
-//     return 0;
-// }
