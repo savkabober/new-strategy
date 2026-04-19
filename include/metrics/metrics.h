@@ -200,7 +200,7 @@ namespace metrics
     }
 
     // Ограничения по конечной точке, скорости, коллизии с роботами
-    void constraints(unsigned m, double *result, unsigned n, const double *x, double *grad, void *data)
+    void constraints(double *result, unsigned n, const double *x, double *grad, void *data)
     {
         countSections(n, x, data);
         MetricsData *params = static_cast<MetricsData *>(data);

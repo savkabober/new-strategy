@@ -52,7 +52,7 @@ int main()
     
     void *data_ptr = static_cast<void *>(&data);
 
-    metrics::constraints(3, result, 2 * nPairs, x, grad, data_ptr);
+    metrics::constraints(result,2 * nPairs, x, grad, data_ptr);
 
     for (int i = 0; i <= nPairs * 2; i++)
     {
