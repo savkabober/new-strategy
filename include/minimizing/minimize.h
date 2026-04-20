@@ -33,24 +33,33 @@ void minimize(MetricsData data)
     if (const_time < EPSILON)
         const_time = 0;
     double T = acc_time + dec_time + const_time;
-    // std::cout << Vm.x << " " << Vm.y << "\n";
 
-    // int n_acc = round(data.n/2 / T * (acc_time + const_time)); // до смены - количество
-    // int n_dec = data.n/2 - n_acc - 1;                          // после смены
-    // std::cout<<n_acc<<" "<<n_dec<<"\n";
     for (int i = 0; i < data.n / 2; i++)
     {
+        double t_mid = (i + 1) * T / data.n * 2;
         data.x[2 * i + 1] = T / data.n * 2;
-        if (i * T / data.n * 2 < acc_time + const_time)
-            data.x[2 * i] = acc_ang;
+
+        if (t_mid < acc_time)
+        {
+            Point v = data.vel + (Vm - data.vel) * (t_mid / acc_time);
+            data.x[2 * i] = v.arg();
+        }
+        else if (t_mid < acc_time + const_time)
+        {
+            data.x[2 * i] = Vm.arg();
+        }
         else
-            data.x[2 * i] = dec_ang;
+        {  
+            double t = t_mid - acc_time - const_time;
+            Point v = Vm + (data.endVel - Vm) * (t / dec_time);
+            data.x[2 * i] = v.arg();
+        }
     }
 
     int swithcId = std::trunc((acc_time + const_time) / (T / data.n * 2));
     data.x[swithcId * 2] = dec_ang;
-    data.x[swithcId * 2 + 1] = T / data.n*2 - fmod((acc_time + const_time), (T / data.n * 2));//это нужно для того чтобы переключение происходило в нужной точке, без учета дискретности.
-    data.x[swithcId * 2 - 1] = T / data.n*2 + fmod((acc_time + const_time), (T / data.n * 2));// я на это потратил час примерно.
+    data.x[swithcId * 2 + 1] = T / data.n * 2 - fmod((acc_time + const_time), (T / data.n * 2));
+    data.x[swithcId * 2 - 1] = T / data.n * 2 + fmod((acc_time + const_time), (T / data.n * 2));
 
     // double minf;
     // if (nlopt_optimize(opt, data.x, &minf) < 0)

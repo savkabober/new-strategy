@@ -18,8 +18,8 @@
 #define ZONE_DY 2000
 #define GOAL_Y 1000
 #define POLARITY 1
-#define PIXELS_X 900
-#define PIXELS_Y 600
+#define PIXELS_X 1800
+#define PIXELS_Y 1200
 //field info
 #define ALL_TEAMS 0
 #define ALLY 1

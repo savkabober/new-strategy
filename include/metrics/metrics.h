@@ -27,12 +27,12 @@ namespace metrics
                 break;
             }
         }
-        cout << "compFlag: " << compFlag << endl;
+        // cout << "compFlag: " << compFlag << endl;
         for (unsigned int i = 0; i < n; i++)
         {
             params->x[i] = x[i];
         }
-        compFlag = 0;
+        compFlag = 0; ////!!!!!!!!!~!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         if (!compFlag)
         {
             r[0] = params->pos;
@@ -42,9 +42,9 @@ namespace metrics
             {
                 vMax = Point(cos(x[2 * i]) * MAX_VEL, sin(x[2 * i]) * MAX_VEL);
                 dMag = (vMax - v[i]).mag();
-                tMax[0] = dMag/MAX_ACC;
+                tMax[i] = dMag / MAX_ACC;
                 // cout << "AAAAA: " << tMax[i] << endl;
-               if (tMax[i] == 0)
+                if (tMax[i] == 0)
                     a[i] = Point(MAX_ACC, 0);
                 else
                 {
@@ -183,7 +183,7 @@ namespace metrics
         deltaT = t[n + 2] - t[n];
         dP = 4 * MAX_ACC * MAX_ACC * deltaT * deltaT * deltaT - 8 * params->vMag * params->vMag * deltaT + 8 * (v[n / 2] ^ deltaR);
         dT = -(-8 * (v[n / 2] ^ dV[n / 2]) * deltaT * deltaT + 8 * deltaT * ((dV[n / 2] ^ deltaR) - (v[n / 2] ^ dR[n / 2])) + 8 * (deltaR ^ dR[n / 2])) / dP;
-        dV[n / 2 + 1] = -dR[n / 2] *2 / deltaT - deltaR *2/ (deltaT * deltaT) * dT - dV[n / 2];
+        dV[n / 2 + 1] = -dR[n / 2] * 2 / deltaT - deltaR * 2 / (deltaT * deltaT) * dT - dV[n / 2];
     }
 
     // Время проезда - то, что минимизируем
@@ -199,7 +199,7 @@ namespace metrics
     }
 
     // Ограничения по конечной точке, скорости, коллизии с роботами
-    void constraints(unsigned int m,double *result, unsigned n, const double *x, double *grad, void *data)
+    void constraints(unsigned int m, double *result, unsigned n, const double *x, double *grad, void *data)
     {
         countSections(n, x, data);
         MetricsData *params = static_cast<MetricsData *>(data);

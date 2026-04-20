@@ -53,15 +53,15 @@ namespace drawer
         window.display();
     }
 
-    void drawCircle(Point pos, double r,sf::Color col = sf::Color(0,0,0))
+    void drawCircle(Point pos, double r, sf::Color col = sf::Color(0, 0, 0))
     {
         sf::CircleShape obstacle1(int(r * k_draw));                                                      // Радиус
-        obstacle1.setFillColor(col);                                                                // Красный цвет
+        obstacle1.setFillColor(col);                                                                     // Красный цвет
         obstacle1.setPosition((FIELD_DX / 2 + pos.x - r) * k_draw, (FIELD_DY / 2 - pos.y - r) * k_draw); // координаты
         window.draw(obstacle1);                                                                          // Выводим на экран
     }
 
-    void drawLine(Point p1, Point p2, double w,sf::Color col = sf::Color(0,0,0))
+    void drawLine(Point p1, Point p2, double w, sf::Color col = sf::Color(0, 0, 0))
     {
         sf::RectangleShape line(sf::Vector2f((p2 - p1).mag() * k_draw, w * k_draw));
         line.rotate(-(p2 - p1).arg() * 180 / M_PI);
@@ -69,7 +69,20 @@ namespace drawer
         line.setPosition((FIELD_DX / 2 + p1.x) * k_draw, (FIELD_DY / 2 - p1.y) * k_draw);
         window.draw(line);
     }
-
+    void drawDumbBangBang(MetricsData data)
+    {
+        Point pos = data.pos, vel = data.vel, acc;
+        double time;
+        for (int i = 0; i < data.n/2; i++)
+        {
+            acc = Point(cos(data.x[i * 2]) * MAX_ACC, MAX_ACC * sin(data.x[i * 2]));
+            time = data.x[i * 2 + 1];
+            pos += vel * time + acc * time * time / 2;
+            vel += acc * time;
+            // std::cout<<(vel.mag()<MAX_VEL)<<"\n";
+            drawer::drawCircle(pos, 50, sf::Color(128, 0, 255));
+        }
+    }
     void drawWay(MetricsData data, double w, double deltaT = 0.1)
     {
         double t = deltaT, tPlot;
@@ -89,7 +102,8 @@ namespace drawer
                 i++;
             }
             i--;
-            if (data.t[i] < 0) {
+            if (data.t[i] < 0)
+            {
                 i--;
             }
             if (i % 2)
