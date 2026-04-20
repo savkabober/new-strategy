@@ -37,11 +37,11 @@ namespace vecAux
         double t1 = (d2 * d).z / determinant;
         double t2 = (d1 * d).z / determinant;
         bool valid = true;
-        if (t1 < 0 && type1 != 'L' || t1 > 1 && type1 == 'S')
+        if ((t1 < 0 && type1 != 'L' )|| (t1 > 1 && type1 == 'S'))
         {
             valid = false;
         }
-        if (t2 < 0 && type2 != 'L' || t2 > 1 && type2 == 'S')
+        if ((t2 < 0 && type2 != 'L') || (t2 > 1 && type2 == 'S'))
         {
             valid = false;
         }
@@ -121,6 +121,6 @@ namespace vecAux
     // Получить время пересечения параболы и окружности
     inline int parabolaCircleIntersection(double *prod, double rad, const Point &a, const Point &v, const Point &r)
     {
-        return numAux::solveEq(prod, a.mag2() / 4, a ^ v, a ^ r + v.mag2(), 2 * (v ^ r), r.mag2() - rad * rad);
+        return numAux::solveEq(prod, a.mag2() / 4, a ^ v, a ^ (r + v.mag2()), 2 * (v ^ r), r.mag2() - rad * rad);
     }
 }

@@ -3,49 +3,65 @@
 */
 
 #pragma once
-#include "nlopt.hpp"
+#include <nlopt.h>
 #include "../metrics/metrics.h"
+#include "initialApprox.h"
 void minimize(MetricsData data)
 {
-    nlopt::opt opt(nlopt::LD_SLSQP, data.n); // создаем объект оптимайзера
-    double lower_bounds[data.n];             // нижние границы для переменных - ноль для изменения по времени и минус бесконечность для ускорения
-    for (int i = 0; i < data.n; i++)
-    {
-        if (i % 2)
-            lower_bounds[i] = 0;
-        else
-            lower_bounds[i] = -HUGE_VAL;
-    }
-    void *data_ptr = static_cast<void *>(&data);                              // переводим дату в войд для передачи в оптимайзер
-    nlopt_set_lower_bounds(opt, lower_bounds);                                // собственно задаем нижние границы
-    nlopt_set_min_objective(opt, metrics::minimizing, data_ptr);              // задаем функцию для минимизации
-    nlopt_add_equality_constraint(opt, metrics::constraints, data_ptr, 1e-8); // задаем функцию ограничений
-    nlopt_set_ftol_rel(opt, 1e-4);                                            // abs??  x??          - задаем критерий остановки - относительное изменение метрики меньше 1е-4 (мб сделать для иксов? или абсолютное?)
+    // nlopt_opt opt = nlopt_create(NLOPT_LD_SLSQP, data.n); // создаем объект оптимайзера
+    // double lower_bounds[data.n];                          // нижние границы для переменных - ноль для изменения по времени и минус бесконечность для ускорения
+    // for (int i = 0; i < data.n; i++)
+    // {
+    //     if (i % 2)
+    //         lower_bounds[i] = 0;
+    //     else
+    //         lower_bounds[i] = -HUGE_VAL;
+    // }
+    // void *data_ptr = static_cast<void *>(&data);                 // переводим дату в войд для передачи в оптимайзер
+    // nlopt_set_lower_bounds(opt, lower_bounds);                   // собственно задаем нижние границы
+    // nlopt_set_min_objective(opt, metrics::minimizing, data_ptr); // задаем функцию для минимизации
+    // double tolerances[3] = {1e-8, 1e-8, 1e-8};
+    // nlopt_add_equality_mconstraint(opt, 3, metrics::constraints, data_ptr, tolerances); // задаем функцию ограничений
+    // nlopt_set_ftol_rel(opt, 1e-4);                                                      // abs??  x??          - задаем критерий остановки - относительное изменение метрики меньше 1е-4 (мб сделать для иксов? или абсолютное?)
 
     Point Vm = bangbang(data.vel, data.endVel, data.endPos - data.pos, MAX_ACC, MAX_VEL);
-    Point acc_ang = (data.vel - Vm).arg();
-    Point dec_ang = (data.endVel - Vm).arg();
+    double acc_ang = (Vm - data.vel).arg();
+    double dec_ang = (data.endVel - Vm).arg();
     double acc_time = (data.vel - Vm).mag() / MAX_ACC;
     double dec_time = (data.endVel - Vm).mag() / MAX_ACC;
     double const_time = ((data.endPos - data.pos) - (data.vel + Vm) / 2 * acc_time - (data.endVel + Vm) / 2 * dec_time).mag() / Vm.mag();
+    if (const_time < EPSILON)
+        const_time = 0;
     double T = acc_time + dec_time + const_time;
+    // std::cout << Vm.x << " " << Vm.y << "\n";
 
+    // int n_acc = round(data.n/2 / T * (acc_time + const_time)); // до смены - количество
+    // int n_dec = data.n/2 - n_acc - 1;                          // после смены
+    // std::cout<<n_acc<<" "<<n_dec<<"\n";
     for (int i = 0; i < data.n / 2; i++)
     {
         data.x[2 * i + 1] = T / data.n * 2;
         if (i * T / data.n * 2 < acc_time + const_time)
-            data.x[2 * i + 1] = acc_ang;
+            data.x[2 * i] = acc_ang;
         else
-            data.x[2 * i + 1] = dec_ang;
-    }
-    double minf;
-    if (nlopt_optimize(opt, data.x, &minf) < 0) {
-        std::cerr << "Ошибка NLopt!" << std::endl;
-    } else {
-        std::cout << "Найдено решение:\n";
-        std::cout << "x[0] = " << x[0] << ", x[1] = " << x[1] << "\n";
-        std::cout << "f = " << minf << std::endl;
+            data.x[2 * i] = dec_ang;
     }
 
-    nlopt_destroy(opt);
+    int swithcId = std::trunc((acc_time + const_time) / (T / data.n * 2));
+    data.x[swithcId * 2] = dec_ang;
+    data.x[swithcId * 2 + 1] = T / data.n*2 - fmod((acc_time + const_time), (T / data.n * 2));//это нужно для того чтобы переключение происходило в нужной точке, без учета дискретности.
+    data.x[swithcId * 2 - 1] = T / data.n*2 + fmod((acc_time + const_time), (T / data.n * 2));// я на это потратил час примерно.
+
+    // double minf;
+    // if (nlopt_optimize(opt, data.x, &minf) < 0)
+    // {
+    //     std::cerr << "Ошибка NLopt!" << std::endl;
+    // }
+    // else
+    // {
+    //     std::cout << "Найдено решение:\n";
+    //     std::cout << "f = " << minf << std::endl;
+    // }
+
+    // nlopt_destroy(opt);
 }

@@ -53,19 +53,19 @@ namespace drawer
         window.display();
     }
 
-    void drawCircle(Point pos, double r)
+    void drawCircle(Point pos, double r,sf::Color col = sf::Color(0,0,0))
     {
         sf::CircleShape obstacle1(int(r * k_draw));                                                      // Радиус
-        obstacle1.setFillColor(colorObs);                                                                // Красный цвет
+        obstacle1.setFillColor(col);                                                                // Красный цвет
         obstacle1.setPosition((FIELD_DX / 2 + pos.x - r) * k_draw, (FIELD_DY / 2 - pos.y - r) * k_draw); // координаты
         window.draw(obstacle1);                                                                          // Выводим на экран
     }
 
-    void drawLine(Point p1, Point p2, double w)
+    void drawLine(Point p1, Point p2, double w,sf::Color col = sf::Color(0,0,0))
     {
         sf::RectangleShape line(sf::Vector2f((p2 - p1).mag() * k_draw, w * k_draw));
         line.rotate(-(p2 - p1).arg() * 180 / M_PI);
-        line.setFillColor(colorObs);
+        line.setFillColor(col);
         line.setPosition((FIELD_DX / 2 + p1.x) * k_draw, (FIELD_DY / 2 - p1.y) * k_draw);
         window.draw(line);
     }

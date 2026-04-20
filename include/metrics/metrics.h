@@ -19,7 +19,7 @@ namespace metrics
         double *t = params->t, *tMax = params->tMax, prod[4], dMag;
         int nProd;
         bool compFlag = true;
-        for (int i = 0; i < n; i++)
+        for (unsigned int i = 0; i < n; i++)
         {
             if (params->x[i] != x[i])
             {
@@ -27,17 +27,18 @@ namespace metrics
                 break;
             }
         }
-        // cout << "compFlag: " << compFlag << endl;
-        for (int i = 0; i < n; i++)
+        cout << "compFlag: " << compFlag << endl;
+        for (unsigned int i = 0; i < n; i++)
         {
             params->x[i] = x[i];
         }
+        compFlag = 0;
         if (!compFlag)
         {
             r[0] = params->pos;
             v[0] = params->vel;
             t[0] = 0;
-            for (int i = 0; i < n / 2; i++)
+            for (unsigned int i = 0; i < n / 2; i++)
             {
                 vMax = Point(cos(x[2 * i]) * MAX_VEL, sin(x[2 * i]) * MAX_VEL);
                 dMag = (vMax - v[i]).mag();
@@ -114,7 +115,7 @@ namespace metrics
                 isIn = false;
             }
 
-            for (int j = 0; j < n + 2; j++)
+            for (unsigned int j = 0; j < n + 2; j++)
             {
                 if (j % 2 && t[j] < 0)
                     continue;
@@ -159,7 +160,7 @@ namespace metrics
             dR[n / 2] = v[i + 1];
             dV[n / 2] = 0;
         }
-        for (int j = i + 1; j < n / 2 && !shortFlag; j++)
+        for (unsigned int j = i + 1; j < n / 2 && !shortFlag; j++)
         {
             // А здесь мы запускаем цепочку - от элемента который меняется и до конца
             // Важно: если мы дошли до элемента, где есть РПД, мы победили: дальше на скорости цепочка не распространяется,
@@ -190,22 +191,19 @@ namespace metrics
     {
         countSections(n, x, data);
         MetricsData *params = static_cast<MetricsData *>(data);
-        Point pos, vel, *a = params->a, *v = params->v, *r = params->r;
+        Point pos, vel;
         double result, *t = params->t;
-        int nProd;
-        bool isIn;
         result = countIntersections(n, x, grad, data, true);
         result += t[n + 2];
         return result;
     }
 
     // Ограничения по конечной точке, скорости, коллизии с роботами
-    void constraints(double *result, unsigned n, const double *x, double *grad, void *data)
+    void constraints(unsigned int m,double *result, unsigned n, const double *x, double *grad, void *data)
     {
         countSections(n, x, data);
         MetricsData *params = static_cast<MetricsData *>(data);
-        Point pos, vel, *a = params->a, *v = params->v, *r = params->r, aNormal;
-        double *t = params->t, *tMax = params->tMax;
+        Point pos, vel, *v = params->v, aNormal;
         result[0] = (v[n / 2 + 1] - params->endVel).x / MAX_VEL;
         result[1] = (v[n / 2 + 1] - params->endVel).x / MAX_VEL;
         result[2] = countIntersections(n, x, grad, data, false);

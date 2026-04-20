@@ -1,6 +1,6 @@
 CXX = g++
 CXXFLAGS = -Wall
-LIBS = -lsfml-graphics -lsfml-window -lsfml-system
+LIBS = -lsfml-graphics -lsfml-window -lsfml-system -lnlopt
 TARGET = app.exe
 SRC = main.cpp
 
