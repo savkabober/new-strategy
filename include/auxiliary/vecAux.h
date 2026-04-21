@@ -123,4 +123,8 @@ namespace vecAux
     {
         return numAux::solveEq(prod, a.mag2() / 4, a ^ v, a ^ (r + v.mag2()), 2 * (v ^ r), r.mag2() - rad * rad);
     }
+    inline int lineCircleIntersection(double *prod, double rad, const Point &v, const Point &r)
+    {
+        return numAux::solveEq(prod, v.mag2(), 2 * (v ^ r), r.mag2() - rad * rad);
+    }
 }
