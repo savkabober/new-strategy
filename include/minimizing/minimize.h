@@ -36,30 +36,22 @@ void minimize(MetricsData data)
 
     for (int i = 0; i < data.n / 2; i++)
     {
-        double t_mid = (i + 1) * T / data.n * 2;
-        data.x[2 * i + 1] = T / data.n * 2;
-
-        if (t_mid < acc_time)
-        {
-            Point v = data.vel + (Vm - data.vel) * (t_mid / acc_time);
-            data.x[2 * i] = v.arg();
-        }
-        else if (t_mid < acc_time + const_time)
-        {
-            data.x[2 * i] = Vm.arg();
-        }
+        if(const_time>0)
+            data.x[i*2] = Vm.arg();
         else
-        {  
-            double t = t_mid - acc_time - const_time;
-            Point v = Vm + (data.endVel - Vm) * (t / dec_time);
-            data.x[2 * i] = v.arg();
+        {
+            double angle = vecAux::getAngleBetweenPoints(data.vel,Point(0,0),(Vm-data.vel));
+            double l = cos(angle)*data.vel.mag()+sqrtf(cos(angle)*cos(angle)*data.vel.mag2()-(data.vel.mag2()-MAX_VEL*MAX_VEL));
+            double beta = asin(l/MAX_VEL*sin(angle));
+            data.x[i*2] = data.vel.arg()-beta;
         }
+        data.x[i*2+1] = (acc_time+dec_time)/data.n*2;
     }
 
-    int swithcId = std::trunc((acc_time + const_time) / (T / data.n * 2));
-    data.x[swithcId * 2] = dec_ang;
-    data.x[swithcId * 2 + 1] = T / data.n * 2 - fmod((acc_time + const_time), (T / data.n * 2));
-    data.x[swithcId * 2 - 1] = T / data.n * 2 + fmod((acc_time + const_time), (T / data.n * 2));
+    // int swithcId = std::trunc((acc_time + const_time) / (T / data.n * 2));
+    // data.x[swithcId * 2] = dec_ang;
+    // data.x[swithcId * 2 + 1] = T / data.n * 2 - fmod((acc_time + const_time), (T / data.n * 2));
+    // data.x[swithcId * 2 - 1] = T / data.n * 2 + fmod((acc_time + const_time), (T / data.n * 2));
 
     // double minf;
     // if (nlopt_optimize(opt, data.x, &minf) < 0)

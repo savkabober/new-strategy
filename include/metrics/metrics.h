@@ -44,7 +44,7 @@ namespace metrics
                 dMag = (vMax - v[i]).mag();
                 tMax[i] = dMag / MAX_ACC;
                 // cout << "AAAAA: " << tMax[i] << endl;
-                if (tMax[i] == 0)
+                if (tMax[i] < EPSILON)
                     a[i] = Point(MAX_ACC, 0);
                 else
                 {
@@ -66,23 +66,24 @@ namespace metrics
                     r[2 * i + 2] = r[2 * i + 1] + v[i + 1] * (x[2 * i + 1] - tMax[i]);
                 }
             }
-            deltaR = (params->endPos - r[n]);
-            params->vMag = v[n / 2].mag();
-            params->rMag = deltaR.mag();
-            nProd = numAux::solveEq(prod, MAX_ACC * MAX_ACC, 0, -4 * params->vMag * params->vMag, 8 * (v[n / 2] ^ deltaR), -4 * params->rMag * params->rMag);
-            for (int i = 0; i < nProd; i++)
-            {
-                if (prod[i] >= 0)
-                {
-                    prod[0] = prod[i];
-                    break;
-                }
-            }
-            t[n + 2] = t[n] + prod[0];
-            t[n + 1] = -1;
-            a[n / 2] = (deltaR - v[n / 2] * prod[0]) * 2 / (prod[0] * prod[0]);
-            v[n / 2 + 1] = v[n / 2] + a[n / 2] * prod[0]; // = 2 * deltaR / prod[0] - v[n / 2];
-            r[n + 2] = params->endPos;
+            //остаток до финиша
+            // deltaR = (params->endPos - r[n]);
+            // params->vMag = v[n / 2].mag();
+            // params->rMag = deltaR.mag();
+            // nProd = numAux::solveEq(prod, MAX_ACC * MAX_ACC, 0, -4 * params->vMag * params->vMag, 8 * (v[n / 2] ^ deltaR), -4 * params->rMag * params->rMag);
+            // for (int i = 0; i < nProd; i++)
+            // {
+            //     if (prod[i] >= 0)
+            //     {
+            //         prod[0] = prod[i];
+            //         break;
+            //     }
+            // }
+            // t[n + 2] = t[n] + prod[0];
+            // t[n + 1] = -1;
+            // a[n / 2] = (deltaR - v[n / 2] * prod[0]) * 2 / (prod[0] * prod[0]);
+            // v[n / 2 + 1] = v[n / 2] + a[n / 2] * prod[0]; // = 2 * deltaR / prod[0] - v[n / 2];
+            // r[n + 2] = params->endPos;
         }
     }
     // Просчитать все пересечения с препятствиями

@@ -99,7 +99,7 @@ namespace drawer
         {
             while (data.t[i] < t)
             {
-                i++;
+                i++;    
             }
             i--;
             if (data.t[i] < 0)

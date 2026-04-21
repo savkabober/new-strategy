@@ -10,7 +10,7 @@
 using namespace std;
 int main(void)
 {
-    int nPairs = 50;
+    int nPairs = 10;
 
     double xData[2 * nPairs], tData[2 * nPairs + 4], tMaxData[nPairs + 1];
     Point rData[2 * nPairs + 4], vData[nPairs + 2], aData[nPairs + 1];
@@ -23,16 +23,16 @@ int main(void)
     data.v = vData;
     data.a = aData;
     data.pos = Point(0, 0);
-    data.vel = Point(1000, 1000);
-    data.endPos = Point(1000, 1000);
-    data.endVel = Point(1000, -1000);
+    data.vel = Point(100, 100);
+    data.endPos = Point(300, 300);
+    data.endVel = Point(100, -100);
 
     data.nEnemies = 0;
     data.n = nPairs * 2;
     data.tMax = tMaxData;
-
     for (int i = 0; i < nPairs * 2; i++)
         data.x[i] = 0;
+    
     void *data_ptr = static_cast<void *>(&data);
     minimize(data);
     metrics::countSections(data.n,data.x,data_ptr);
@@ -45,10 +45,10 @@ int main(void)
     drawer::drawCircle(data.endPos, 50, sf::Color(0, 0, 255));
     drawer::drawLine(data.pos, data.pos + data.vel, 10, sf::Color(0, 0, 255));
     drawer::drawLine(data.endPos, data.endPos + data.endVel, 10, sf::Color(0, 0, 255));
-    for(int i = 0;i<2*nPairs+4;i++)
-    {
-        drawer::drawCircle(data.r[i],10);
-    }
+    // for(int i = 0;i<2*nPairs+4;i++)
+    // {
+    //     drawer::drawCircle(data.r[i],10);
+    // }
 
 
 
