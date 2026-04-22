@@ -25,14 +25,14 @@ void minimize(MetricsData data)
     // nlopt_set_ftol_rel(opt, 1e-4);                                                      // abs??  x??          - задаем критерий остановки - относительное изменение метрики меньше 1е-4 (мб сделать для иксов? или абсолютное?)
 
     Point Vm = bangbang(data.vel, data.endVel, data.endPos - data.pos, MAX_ACC, MAX_VEL);
-    double acc_ang = (Vm - data.vel).arg();
-    double dec_ang = (data.endVel - Vm).arg();
+    // double acc_ang = (Vm - data.vel).arg();
+    // double dec_ang = (data.endVel - Vm).arg();
     double acc_time = (data.vel - Vm).mag() / MAX_ACC;
     double dec_time = (data.endVel - Vm).mag() / MAX_ACC;
     double const_time = ((data.endPos - data.pos) - (data.vel + Vm) / 2 * acc_time - (data.endVel + Vm) / 2 * dec_time).mag() / Vm.mag();
     if (const_time < EPSILON)
         const_time = 0;
-    double T = acc_time + dec_time + const_time;
+    //double T = acc_time + dec_time + const_time;
 
     for (int i = 0; i < data.n / 2; i++)
     {
