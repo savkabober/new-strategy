@@ -67,14 +67,14 @@ namespace metrics
         isLong[n / 2] = false;
     }
     // Просчитать все пересечения с препятствиями
-    double countIntersections(unsigned n, MetricsData *data, bool doSafe)
+    double countIntersections(int n, MetricsData *data, bool doSafe)
     {
         Point pos, vel, *a = data->a, *v = data->v, *r = data->r;
         double result = 0, prod[4], intersection, rad, *t = data->t, *tInt;
         if (doSafe)
-            *tInt = data->tIntMin;
+            tInt = data->tIntMin;
         else
-            *tInt = data->tIntCon;
+            tInt = data->tIntCon;
         int nProd, nowIdx = 0;
         bool isIn;
         for (int i = 0; i < data->nEnemies; i++)
@@ -123,7 +123,7 @@ namespace metrics
                 for (; nowIdx < 4; nowIdx++)
                     tInt[6 * (n / 2 + 1) * i + 6 * j + nowIdx] = -1;
                 nowIdx = 0;
-                if (isLong[j])
+                if (data->isLong[j])
                 {
                     nProd = vecAux::lineCircleIntersection(prod, rad + data->safeDist * (doSafe), v[j] - vel, r[2 * j + 1] - pos);
                     for (int k = 0; k < nProd; k++)
@@ -149,7 +149,7 @@ namespace metrics
         return result;
     }
     // Функция просчета цепочки
-    double chainGrad(unsigned n, int i, bool shortFl, MetricsData *data)
+    double chainGrad(int n, int i, bool shortFl, MetricsData *data)
     {
         Point *dV = data->dV, *dR = data->dR, *a = data->a, *v = data->v, *r = data->r, aNormal, deltaR, *dA = data->dA;
         double *t = data->t, *tMax = data->tMax, deltaT, dP, dT;
@@ -160,7 +160,7 @@ namespace metrics
             // А здесь мы запускаем цепочку - от элемента который меняется и до конца
             // Важно: если мы дошли до элемента, где есть РПД, мы победили: дальше на скорости цепочка не распространяется,
             // а производная перемещения сохраняется
-            if (isLong[j])
+            if (data->isLong[j])
             {
                 dT = -(dV[j] ^ a[j]) / (MAX_ACC * MAX_ACC);
                 dR[2 * j + 1] = dR[2 * j] + (v[j] + v[j + 1]) * dT / 2 + dV[j] * (t[2 * j + 1] - t[2 * j]) / 2;
@@ -190,13 +190,13 @@ namespace metrics
         dR[n + 1] = 0;
         for (int j = i; j < n / 2 + 1; j++)
         {
-            aNormal(-a[j].y, a[j].x);
+            aNormal = Point(-a[j].y, a[j].x);
             dA[j] = aNormal * (aNormal ^ (dV[j + 1] - dV[j])) / (t[2 * j + 1] - t[2 * j]) / (MAX_ACC * MAX_ACC);
         }
         return dT;
     }
 
-    bool isRepeated(unsigned n, const double *x, MetricsData *data)
+    bool isRepeated(int n, const double *x, MetricsData *data)
     {
         bool compFlag = true;
         for (int i = 0; i < n; i++)
@@ -214,19 +214,18 @@ namespace metrics
         return compFlag;
     }
 
-    double intGrad(unsigned n, MetricsData *data, int i, bool doSafe)
+    double intGrad(int n, MetricsData *data, int i, bool doSafe)
     {
-        Point *dA = data->dA, vNormal, *v = data->v, *a = data->a, aNormal, *v = data->v, vel, pos, *dV = data->dV;
-        Point *r = data->r, *dR = data->dR;
+        Point *dA = data->dA, vNormal, *v = data->v, *a = data->a, aNormal, vel, pos, *dV = data->dV, *r = data->r, *dR = data->dR;
         bool isIn = false;
         double dT, dP, *tInt, result, t;
         if (doSafe)
         {
-            *tInt = data->tIntMin;
+            tInt = data->tIntMin;
         }
         else
         {
-            *tInt = data->tIntCon;
+            tInt = data->tIntCon;
         }
         for (int j = i; j < n / 2 + 1; j++)
         {
@@ -241,11 +240,11 @@ namespace metrics
                         break;
                     dP = MAX_ACC * MAX_ACC * t * t * t;
                     dP += 3 * (a[j] ^ vel) * t * t;
-                    dP += 2 * t * (a[j] ^ pos + vel.mag2());
+                    dP += 2 * t * ((a[j] ^ pos) + vel.mag2());
                     dP += 2 * (vel ^ pos);
-                    dT = (dA[j] ^ vel + a[j] ^ dV[j]) * t * t * t;
-                    dT += ((dA[j] ^ pos + a[j] ^ dR[2 * j]) + 2 * (vel ^ dV[j])) * t * t;
-                    dT += 2 * (dV[j] ^ pos + vel ^ dR[2 * j]) * t;
+                    dT = ((dA[j] ^ vel) + (a[j] ^ dV[j])) * t * t * t;
+                    dT += (((dA[j] ^ pos) + (a[j] ^ dR[2 * j])) + 2 * (vel ^ dV[j])) * t * t;
+                    dT += 2 * ((dV[j] ^ pos) + (vel ^ dR[2 * j])) * t;
                     dT += 2 * (pos ^ dR[2 * j]);
                     dT *= -1 / dP;
                     if (!isIn)
@@ -266,7 +265,7 @@ namespace metrics
                         dP = 2 * t * (vel.mag2());
                         dP += 2 * (vel ^ pos);
                         dT += 2 * (vel ^ dV[j + 1]) * t * t;
-                        dT += 2 * (dV[j + 1] ^ pos + vel ^ dR[2 * j + 1]) * t;
+                        dT += 2 * ((dV[j + 1] ^ pos) + (vel ^ dR[2 * j + 1])) * t;
                         dT += 2 * (pos ^ dR[2 * j + 1]);
                         dT *= -1 / dP;
                         if (!isIn)
@@ -281,10 +280,10 @@ namespace metrics
         return result;
     }
 
-    void mainActions(unsigned n, const double *x, MetricsData *data)
+    void mainActions(int n, const double *x, MetricsData *data)
     {
-        Point vNormal, *vMax = data->vMax, *a = data->a, *dV = data->dV, *dR = data->dR, r;
-        double dT, *t = data->t;
+        Point vNormal, *vMax = data->vMax, *a = data->a, *dV = data->dV, *dR = data->dR, *v = data->v;
+        double dT, *t = data->t, *tMax = data->tMax;
         bool shortFlag;
         if (isRepeated(n, x, data))
             return;
@@ -297,7 +296,7 @@ namespace metrics
         {
             dV[i] = dR[2 * i] = 0;
             vNormal = Point(-vMax[i].y, vMax[i].x);
-            if (isLong[i])
+            if (data->isLong[i])
             {
                 dT = (a[i] ^ vNormal) / (MAX_ACC * MAX_ACC);
                 dV[i + 1] = vNormal;
@@ -323,7 +322,7 @@ namespace metrics
         for (int i = 0; i < n / 2; i++)
         {
             dV[i] = dR[2 * i] = 0;
-            if (isLong[i])
+            if (data->isLong[i])
             {
                 shortFlag = true;
                 dR[2 * i + 1] = 0;
@@ -348,14 +347,14 @@ namespace metrics
             data->gradCon[2 * n + 2 * i + 1] = dT;
             for (int j = 0; j < data->nEnemies; j++)
             {
-                if ((data->enemies[j].getPos() - data->r[2 * i + 1]).mag() < data->enemies[j].getRad())
+                if ((data->enemies[j].getPos() - data->r[2 * i + 2]).mag() < data->enemies[j].getRad())
                     data->gradCon[2 * n + 2 * i + 1] += 1;
             }
             dT = intGrad(n, data, i, true);
             data->gradMin[2 * i + 1] += dT;
             for (int j = 0; j < data->nEnemies; j++)
             {
-                if ((data->enemies[j].getPos() - data->r[2 * i + 1]).mag() < data->enemies[j].getRad() + data->safeDist)
+                if ((data->enemies[j].getPos() - data->r[2 * i + 2]).mag() < data->enemies[j].getRad() + data->safeDist)
                     data->gradMin[2 * i + 1] += 1;
             }
             data->gradCon[2 * n + 2 * i + 1] *= (MAX_ACC / MAX_VEL);
@@ -368,7 +367,7 @@ namespace metrics
     {
         MetricsData *data = static_cast<MetricsData *>(voidData);
         mainActions(n, x, data);
-        for (int i = 0; i < n; i++) {
+        for (int i = 0; i < int(n); i++) {
             grad[i] = data->gradMin[i];
         }
         return data->resultMin;
@@ -382,7 +381,7 @@ namespace metrics
         result[0] = data->resultCon[0];
         result[1] = data->resultCon[1];
         result[2] = data->resultCon[2];
-        for (int i = 0; i < 3 * n; i++) {
+        for (int i = 0; i < 3 * int(n); i++) {
             grad[i] = data->gradCon[i];
         }
     }

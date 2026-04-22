@@ -55,16 +55,16 @@ int main(void)
     data.dA = dAData;
 
     //заполнение иксов рандомной датой для тестов
-    x[0] = 0;
-    x[1] = 1;
-    x[2] = 1;
-    x[3] = 0.5;
-    x[4] = M_PI;
-    x[5] = 1.5;
-    x[6] = -M_PI / 2;
-    x[7] = 3;
+    data.x[0] = 0;
+    data.x[1] = 1;
+    data.x[2] = 1;
+    data.x[3] = 0.5;
+    data.x[4] = M_PI;
+    data.x[5] = 1.5;
+    data.x[6] = -M_PI / 2;
+    data.x[7] = 3;
 
-    metrics::countSections(nPairs * 2, data);
+    metrics::countSections(nPairs * 2, &data);
 
     drawer::setFramerateLimit(60);
     drawer::clear();

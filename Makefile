@@ -1,11 +1,11 @@
 CXX = g++
 CXXFLAGS = -Wall
 LIBS = -lsfml-graphics -lsfml-window -lsfml-system -lnlopt
-TARGET = app.exe
+TARGET = app
 SRC = main.cpp
 
 $(TARGET): $(SRC)
-	$(CXX) $(SRC) -o $(TARGET) $(LIBS) $(CXXFLAGS) && .\$(TARGET)
+	$(CXX) $(SRC) -o $(TARGET) $(LIBS) $(CXXFLAGS) #&& .\$(TARGET)
 
 clean:
-	del $(TARGET)
+	rm -rf $(TARGET)
