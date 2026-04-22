@@ -13,10 +13,10 @@ int main(void)
     int nPairs = 10;
 
     double xData[2 * nPairs], tData[2 * nPairs + 4], tMaxData[nPairs + 1];
-    Point rData[2 * nPairs + 4], vData[nPairs + 2], aData[nPairs + 1];
+    Point rData[2 * nPairs + 4], vData[nPairs + 2], aData[nPairs + 1],vMaxData[nPairs+5];
 
     MetricsData data;
-
+    data.vMax = vMaxData;
     data.x = xData;
     data.t = tData;
     data.r = rData;
@@ -35,7 +35,7 @@ int main(void)
     
     void *data_ptr = static_cast<void *>(&data);
     minimize(data);
-    metrics::countSections(data.n,data.x,data_ptr);
+    metrics::countSections(data.n,data_ptr);
     // for (int i = 0; i < nPairs; i++)
     //     std::cout << data.x[2 * i] << " " << data.x[2 * i + 1] << "\n";
 
