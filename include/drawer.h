@@ -85,6 +85,10 @@ namespace drawer
     }
     void drawWay(MetricsData data, double w, double deltaT = 0.1)
     {
+        drawer::drawCircle(data.pos, w+30, sf::Color(0, 0, 255));
+        drawer::drawCircle(data.endPos, w+30, sf::Color(0, 0, 255));
+        drawer::drawLine(data.pos, data.pos + data.vel, w, sf::Color(0, 0, 255));
+        drawer::drawLine(data.endPos, data.endPos + data.endVel, w, sf::Color(0, 0, 255));
         double t = deltaT, tPlot;
         int i = 0;
         Point p = data.r[0], pNew;

@@ -19,7 +19,7 @@ int main(void)
     bool *isLong;
     Point *a, *v, *r, *vMax, *dV, *dR, *dA;
     */
-    int nPairs = 4, nEnemies = 0;
+    int nPairs = 10, nEnemies = 1;
     // Создание переменных для даты
     bool isLongData[nPairs + 1];
     double tData[2 * nPairs + 4], xData[2 * nPairs], tMaxData[nPairs], gradConData[6 * nPairs], gradMinData[2 * nPairs];
@@ -30,10 +30,10 @@ int main(void)
     // Если с кодом творится пиздец - смотри сюда!!! (все может крашится если ссылается на чето пустое)
     // В будущем стоит сделать все массивы с максимальным значением n. да, потратится сколько то памяти, но зато нет ебли с передачей
     MetricsData data;
-    data.pos = Point(0, 0);
-    data.vel = Point(0, 0);
-    data.endPos = Point(2000, 0);
-    data.endVel = Point(0, 0);
+    data.pos = Point(-1500, -1500);
+    data.vel = Point(MAX_VEL, MAX_VEL);
+    data.endPos = Point(1500, 1500);
+    data.endVel = Point(MAX_VEL, 0);
     data.nEnemies = nEnemies;
     data.n = nPairs * 2;
     data.t = tData;
@@ -53,36 +53,47 @@ int main(void)
     data.dV = dVData;
     data.dR = dRData;
     data.dA = dAData;
+    data.enemies[0].setPos(Point(-400, 100));
+    data.enemies[0].setVel(Point(500, 500));
+    for (int i = 0; i < nEnemies; i++)
+        data.enemies[i].setRad(ROBOT_R);
 
-    //заполнение иксов рандомной датой для тестов
-    data.x[0] = 0;
-    data.x[1] = 1;
-    data.x[2] = 1;
-    data.x[3] = 0.5;
-    data.x[4] = M_PI;
-    data.x[5] = 1.5;
-    data.x[6] = -M_PI / 2;
-    data.x[7] = 3;
-
-    metrics::countSections(nPairs * 2, &data);
+    // заполнение иксов рандомной датой для тестов
+    //  data.x[0] = 0;
+    //  data.x[1] = 1;
+    //  data.x[2] = 1;
+    //  data.x[3] = 0.5;
+    //  data.x[4] = M_PI;
+    //  data.x[5] = 1.5;
+    //  data.x[6] = -M_PI / 2;
+    //  data.x[7] = 3;
 
     drawer::setFramerateLimit(60);
     drawer::clear();
-    drawer::drawCircle(data.pos, 50, sf::Color(0, 0, 255));
-    drawer::drawCircle(data.endPos, 50, sf::Color(0, 0, 255));
-    drawer::drawLine(data.pos, data.pos + data.vel, 10, sf::Color(0, 0, 255));
-    drawer::drawLine(data.endPos, data.endPos + data.endVel, 10, sf::Color(0, 0, 255));
-    // for(int i = 0;i<2*nPairs+4;i++)
+    for (int i = 0; i < nEnemies; i++)
+    {
+        drawer::drawCircle(data.enemies[i].getPos(), ROBOT_R,sf::Color(255,0,0));
+        drawer::drawLine(data.enemies[i].getPos(), data.enemies[i].getPos() + data.enemies[i].getVel(), 10,sf::Color(255,0,0));
+    }
+    // for (int i = 0; i < 100; i++)
     // {
-    //     drawer::drawCircle(data.r[i],10);
+    //     data.vel = Point(MAX_VEL * cos(2 * M_PI / 100 * i), MAX_VEL * sin(2 * M_PI / 100 * i));
+    //     for (int j = 0; j < 100; j++)
+    //     {
+    //         drawer::clear();
+    //         data.endVel = Point(MAX_VEL * cos(2 * M_PI / 100 * j), MAX_VEL * sin(2 * M_PI / 100 * j));
+    //         minimize(data);
+    //         metrics::countSections(nPairs * 2, &data);
+    //         drawer::drawWay(data, 20);
+    //         drawer::display();
+    //     }
     // }
-
-    // drawer::drawDumbBangBang(data);
-    //drawer::drawWay(data, 20);
+    minimize(data);
+    metrics::countSections(nPairs * 2, &data);
+    drawer::drawWay(data, 20);
     drawer::display();
-
     while (!drawer::updateEvent())
     {
     }
-    return 1;
+    return 0;
 }
