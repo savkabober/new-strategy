@@ -30,26 +30,11 @@ int main(void)
     // Если с кодом творится пиздец - смотри сюда!!! (все может крашится если ссылается на чето пустое)
     // В будущем стоит сделать все массивы с максимальным значением n. да, потратится сколько то памяти, но зато нет ебли с передачей
     MetricsData data;
-<<<<<<< Updated upstream
     data.pos = Point(0, 0);
     data.vel = Point(0, 0);
     data.endPos = Point(2000, 0);
     data.endVel = Point(0, 0);
     data.nEnemies = nEnemies;
-=======
-    data.vMax = vMaxData;
-    data.x = xData;
-    data.t = tData;
-    data.r = rData;
-    data.v = vData;
-    data.a = aData;
-    data.pos = Point(-1500, -1500);
-    data.vel = Point(0, 1000);
-    data.endPos = Point(1500, 1500);
-    data.endVel = Point(MAX_VEL, 0);
-
-    data.nEnemies = 0;
->>>>>>> Stashed changes
     data.n = nPairs * 2;
     data.t = tData;
     data.x = xData;
