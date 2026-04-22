@@ -24,7 +24,7 @@ int main(void)
     data.a = aData;
     data.pos = Point(0, 0);
     data.vel = Point(100, 100);
-    data.endPos = Point(300, 300);
+    data.endPos = Point(1000, 1000);
     data.endVel = Point(100, -100);
 
     data.nEnemies = 0;
