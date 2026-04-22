@@ -36,16 +36,16 @@ void minimize(MetricsData data)
 
     for (int i = 0; i < data.n / 2; i++)
     {
-        // if (const_time > 0)
-        data.x[i * 2] = Vm.arg();
-        // else
-        // {
-        //     double angle = vecAux::getAngleBetweenPoints(data.vel, Point(0, 0), (Vm - data.vel));
-        //     Point dV = (data.vel - vM).unity() * (cos(angle) * data.vel.mag() + sqrt(cos(angle) * cos(angle) * data.vel.mag2() - (data.vel.mag2() - MAX_VEL * MAX_VEL)));
-            
-        //     data.x[i * 2] = data.vel.arg() + dV;
-        // }
-        data.x[i * 2 + 1] = (acc_time + dec_time) / data.n * 2;
+        if(const_time>0)
+            data.x[i*2] = Vm.arg();
+        else
+        {
+            double angle = vecAux::getAngleBetweenPoints(data.vel,Point(0,0),(Vm-data.vel));
+            double l = cos(angle)*data.vel.mag()+sqrtf(cos(angle)*cos(angle)*data.vel.mag2()-(data.vel.mag2()-MAX_VEL*MAX_VEL));
+            double beta = asin(l/MAX_VEL*sin(angle));
+            data.x[i*2] = data.vel.arg()-beta;
+        }
+        data.x[i*2+1] = (acc_time+const_time)/data.n*2;
     }
 
     // int swithcId = std::trunc((acc_time + const_time) / (T / data.n * 2));

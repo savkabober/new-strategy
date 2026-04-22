@@ -92,7 +92,7 @@ namespace drawer
         {
             if (j % 2 || data.t[j + 1] >= 0)
             {
-                drawCircle(data.r[j + 1], 50);
+                drawCircle(data.r[j + 1], w+20,sf::Color(255,128,0));
             }
         }
         while (t < data.t[data.n + 2])
@@ -112,16 +112,16 @@ namespace drawer
                 {
                     tPlot = t - data.t[i];
                     pNew = data.r[i] + data.v[i / 2 + 1] * tPlot;
-                    drawLine(p, pNew, w);
+                    drawLine(p, pNew, w,sf::Color(255,0,0));
                     p = pNew;
-                    cout << "say wallahi" << endl;
+                    // cout << "say wallahi" << endl;
                 }
             }
             else
             {
                 tPlot = t - data.t[i];
                 pNew = data.r[i] + data.v[i / 2] * tPlot + data.a[i / 2] * tPlot * tPlot / 2;
-                drawLine(p, pNew, w);
+                drawLine(p, pNew, w,sf::Color(0,255,128));
                 p = pNew;
             }
             t += deltaT;
