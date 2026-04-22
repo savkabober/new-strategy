@@ -10,34 +10,61 @@
 using namespace std;
 int main(void)
 {
-    int nPairs = 10;
-
-    double xData[2 * nPairs], tData[2 * nPairs + 4], tMaxData[nPairs + 1];
-    Point rData[2 * nPairs + 4], vData[nPairs + 2], aData[nPairs + 1],vMaxData[nPairs+5];
-
+    /*
+    Дата выглядит так
+    Point pos, vel, endPos, endVel;
+    int nEnemies, n;
+    AbsRigBody enemies[MAX_ROBOT_COUNT];
+    double *t, *x, *tMax, *gradCon, *gradMin, *tIntCon, *tIntMin, *resultCon, resultMin, safeDist;
+    bool *isLong;
+    Point *a, *v, *r, *vMax, *dV, *dR, *dA;
+    */
+    int nPairs = 4, nEnemies = 0;
+    // Создание переменных для даты
+    bool isLongData[nPairs + 1];
+    double tData[2 * nPairs + 4], xData[2 * nPairs], tMaxData[nPairs], gradConData[6 * nPairs], gradMinData[2 * nPairs];
+    double tIntConData[6 * (nPairs + 1) * nEnemies], tIntMinData[6 * (nPairs + 1) * nEnemies], resultConData[3];
+    Point rData[2 * nPairs + 4], vData[nPairs + 2], aData[nPairs + 1], vMaxData[nPairs];
+    Point dVData[nPairs + 2], dRData[nPairs + 1], dAData[nPairs + 1];
+    // Заполнение даты, чтобы в ней все было
+    // Если с кодом творится пиздец - смотри сюда!!! (все может крашится если ссылается на чето пустое)
+    // В будущем стоит сделать все массивы с максимальным значением n. да, потратится сколько то памяти, но зато нет ебли с передачей
     MetricsData data;
-    data.vMax = vMaxData;
-    data.x = xData;
-    data.t = tData;
-    data.r = rData;
-    data.v = vData;
-    data.a = aData;
     data.pos = Point(0, 0);
-    data.vel = Point(100, 100);
-    data.endPos = Point(1000, 1000);
-    data.endVel = Point(100, -100);
-
-    data.nEnemies = 0;
+    data.vel = Point(0, 0);
+    data.endPos = Point(2000, 0);
+    data.endVel = Point(0, 0);
+    data.nEnemies = nEnemies;
     data.n = nPairs * 2;
+    data.t = tData;
+    data.x = xData;
     data.tMax = tMaxData;
-    for (int i = 0; i < nPairs * 2; i++)
-        data.x[i] = 0;
-    
-    void *data_ptr = static_cast<void *>(&data);
-    minimize(data);
-    metrics::countSections(data.n,data_ptr);
-    // for (int i = 0; i < nPairs; i++)
-    //     std::cout << data.x[2 * i] << " " << data.x[2 * i + 1] << "\n";
+    data.gradCon = gradConData;
+    data.gradMin = gradMinData;
+    data.tIntCon = tIntConData;
+    data.tIntMin = tIntMinData;
+    data.resultCon = resultConData;
+    data.safeDist = 20;
+    data.isLong = isLongData;
+    data.a = aData;
+    data.v = vData;
+    data.r = rData;
+    data.vMax = vMaxData;
+    data.dV = dVData;
+    data.dR = dRData;
+    data.dA = dAData;
+
+    //заполнение иксов рандомной датой для тестов
+    x[0] = 0;
+    x[1] = 1;
+    x[2] = 1;
+    x[3] = 0.5;
+    x[4] = M_PI;
+    x[5] = 1.5;
+    x[6] = -M_PI / 2;
+    x[7] = 3;
+
+    metrics::countSections(nPairs * 2, data);
 
     drawer::setFramerateLimit(60);
     drawer::clear();
@@ -50,10 +77,8 @@ int main(void)
     //     drawer::drawCircle(data.r[i],10);
     // }
 
-
-
     // drawer::drawDumbBangBang(data);
-    drawer::drawWay(data, 20);
+    //drawer::drawWay(data, 20);
     drawer::display();
 
     while (!drawer::updateEvent())
