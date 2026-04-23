@@ -30,10 +30,10 @@ int main(void)
     // Если с кодом творится пиздец - смотри сюда!!! (все может крашится если ссылается на чето пустое)
     // В будущем стоит сделать все массивы с максимальным значением n. да, потратится сколько то памяти, но зато нет ебли с передачей
     MetricsData data;
-    data.pos = Point(0, 0);
-    data.vel = Point(0, 0);
-    data.endPos = Point(2000, 0);
-    data.endVel = Point(0, 0);
+    data.pos = Point(-1500, -1500);
+    data.vel = Point(MAX_VEL, MAX_VEL);
+    data.endPos = Point(1500, 1500);
+    data.endVel = Point(MAX_VEL, 0);
     data.nEnemies = nEnemies;
     data.n = nPairs * 2;
     data.t = tData;
@@ -142,13 +142,23 @@ int main(void)
 
     drawer::setFramerateLimit(60);
     drawer::clear();
-    drawer::drawCircle(data.pos, 50, sf::Color(0, 0, 255));
-    drawer::drawCircle(data.endPos, 50, sf::Color(0, 0, 255));
-    drawer::drawLine(data.pos, data.pos + data.vel, 10, sf::Color(0, 0, 255));
-    drawer::drawLine(data.endPos, data.endPos + data.endVel, 10, sf::Color(0, 0, 255));
-    // for(int i = 0;i<2*nPairs+4;i++)
+    for (int i = 0; i < nEnemies; i++)
+    {
+        drawer::drawCircle(data.enemies[i].getPos(), ROBOT_R,sf::Color(255,0,0));
+        drawer::drawLine(data.enemies[i].getPos(), data.enemies[i].getPos() + data.enemies[i].getVel(), 10,sf::Color(255,0,0));
+    }
+    // for (int i = 0; i < 100; i++)
     // {
-    //     drawer::drawCircle(data.r[i],10);
+    //     data.vel = Point(MAX_VEL * cos(2 * M_PI / 100 * i), MAX_VEL * sin(2 * M_PI / 100 * i));
+    //     for (int j = 0; j < 100; j++)
+    //     {
+    //         drawer::clear();
+    //         data.endVel = Point(MAX_VEL * cos(2 * M_PI / 100 * j), MAX_VEL * sin(2 * M_PI / 100 * j));
+    //         minimize(data);
+    //         metrics::countSections(nPairs * 2, &data);
+    //         drawer::drawWay(data, 20);
+    //         drawer::display();
+    //     }
     // }
 
     // drawer::drawDumbBangBang(data);
@@ -156,9 +166,8 @@ int main(void)
     drawer::drawVel(data.endPos, data.endVel);
     drawer::drawVel(data.endPos, data.v[nPairs + 1]);
     drawer::display();
-
     while (!drawer::updateEvent())
     {
     }
-    return 1;
+    return 0;
 }
