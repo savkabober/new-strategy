@@ -88,12 +88,12 @@ int main(void)
 
     Timer myTimer;
     myTimer.reset();
-    for (int i = 0; i < 1e6; i++) {
+    for (int i = 0; i < 1e4; i++) {
         metrics::constraints(3, resultCon, 2 * nPairs, x, gradientCon, voidData);
     }
     //resultMin = metrics::minimizing(2 * nPairs, x, gradientMin, voidData);
     long double deltaT = myTimer.time();
-    cout << "time in mcs: " << deltaT * 1e6 / 1e6 << endl;
+    cout << "time in mcs: " << deltaT * 1e6 / 1e4 << endl;
 
     // minimize(data);
 

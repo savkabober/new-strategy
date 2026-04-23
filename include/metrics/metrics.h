@@ -101,7 +101,6 @@ namespace metrics
                 if ((pos - r[0]).mag() < rad)
                     continue;
                 isIn = false;
-                cout << "OK" << endl;
             }
 
             for (int j = 0; j < n / 2 + 1; j++)
@@ -223,7 +222,7 @@ namespace metrics
         {
             data->x[i] = x[i];
         }
-        // return false;
+        return false;
         return compFlag;
     }
 
