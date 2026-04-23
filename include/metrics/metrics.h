@@ -52,17 +52,28 @@ namespace metrics
         }
         deltaR = (data->endPos - r[n]);
         nProd = numAux::solveEq(prod, MAX_ACC * MAX_ACC, 0, -4 * v[n / 2].mag2(), 8 * (v[n / 2] ^ deltaR), -4 * deltaR.mag2());
+        double deltaMag, deltaMagMin = - 1;
+        int idxMin = -1;
         for (int i = 0; i < nProd; i++)
         {
             if (prod[i] >= 0)
             {
-                prod[0] = prod[i];
-                break;
+                if (idxMin < 0) {
+                    idxMin = i;
+                    deltaMagMin = (data->endVel - deltaR * 2 / prod[i] + v[n / 2]).mag();
+                }
+                else {
+                    deltaMag = (data->endVel - deltaR * 2 / prod[i] + v[n / 2]).mag();
+                    if (deltaMag < deltaMagMin) {
+                        deltaMagMin = deltaMag;
+                        idxMin = i;
+                    }
+                }
             }
         }
-        t[n + 1] = t[n + 2] = t[n] + prod[0];
-        a[n / 2] = (deltaR - v[n / 2] * prod[0]) * 2 / (prod[0] * prod[0]);
-        v[n / 2 + 1] = v[n / 2] + a[n / 2] * prod[0]; // = 2 * deltaR / prod[0] - v[n / 2];
+        t[n + 1] = t[n + 2] = t[n] + prod[idxMin];
+        a[n / 2] = (deltaR - v[n / 2] * prod[idxMin]) * 2 / (prod[idxMin] * prod[idxMin]);
+        v[n / 2 + 1] = deltaR * 2 / prod[idxMin] - v[n / 2]; // = 2 * deltaR / prod[0] - v[n / 2];
         r[n + 1] = r[n + 2] = data->endPos;
         isLong[n / 2] = false;
     }

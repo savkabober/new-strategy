@@ -95,7 +95,7 @@ int main(void)
     long double deltaT = myTimer.time();
     cout << "time in mcs: " << deltaT * 1e6 / 1e4 << endl;
 
-    // minimize(data);
+    minimize(data);
 
 
     drawer::setFramerateLimit(60);
