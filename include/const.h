@@ -4,7 +4,7 @@
 #pragma once
 
 //robot movement
-#define MAX_VEL 1500
+#define MAX_VEL 1000
 #define MAX_ACC 1000
 //idk
 #define MAX_ROBOT_COUNT 16
@@ -18,8 +18,11 @@
 #define ZONE_DY 2000
 #define GOAL_Y 1000
 #define POLARITY 1
+//draw info
 #define PIXELS_X 900
 #define PIXELS_Y 600
+#define VELOCITY_K 0.3
+#define LINE_WIDTH 20
 //field info
 #define ALL_TEAMS 0
 #define ALLY 1

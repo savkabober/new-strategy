@@ -19,13 +19,13 @@ int main(void)
     bool *isLong;
     Point *a, *v, *r, *vMax, *dV, *dR, *dA;
     */
-    int nPairs = 4, nEnemies = 0;
+    int nPairs = 10, nEnemies = 0;
     // Создание переменных для даты
     bool isLongData[nPairs + 1];
     double tData[2 * nPairs + 4], xData[2 * nPairs], tMaxData[nPairs], gradConData[6 * nPairs], gradMinData[2 * nPairs];
     double tIntConData[6 * (nPairs + 1) * nEnemies], tIntMinData[6 * (nPairs + 1) * nEnemies], resultConData[3];
     Point rData[2 * nPairs + 4], vData[nPairs + 2], aData[nPairs + 1], vMaxData[nPairs];
-    Point dVData[nPairs + 2], dRData[nPairs + 1], dAData[nPairs + 1];
+    Point dVData[nPairs + 2], dRData[2 * nPairs + 2], dAData[nPairs + 1];
     // Заполнение даты, чтобы в ней все было
     // Если с кодом творится пиздец - смотри сюда!!! (все может крашится если ссылается на чето пустое)
     // В будущем стоит сделать все массивы с максимальным значением n. да, потратится сколько то памяти, но зато нет ебли с передачей
@@ -53,18 +53,86 @@ int main(void)
     data.dV = dVData;
     data.dR = dRData;
     data.dA = dAData;
+    data.enemies[0] = AbsRigBody(Point(-1000, 1000), 2 * ROBOT_R, Point(0, 0));
 
-    //заполнение иксов рандомной датой для тестов
-    data.x[0] = 0;
-    data.x[1] = 1;
-    data.x[2] = 1;
-    data.x[3] = 0.5;
-    data.x[4] = M_PI;
-    data.x[5] = 1.5;
-    data.x[6] = -M_PI / 2;
-    data.x[7] = 3;
+    double resultCon[3], gradientCon[6 * nPairs], x[2 * nPairs], gradientMin[2 * nPairs], resultMin;
+    double be;
+    // заполнение иксов рандомной датой для тестов
+    x[0] = 0;
+    x[1] = 1;
+    x[2] = 1;
+    x[3] = 0.5;
+    x[4] = M_PI;
+    x[5] = 1.5;
+    x[6] = -M_PI / 2;
+    x[7] = 2;
+    x[8] = 0;
+    x[9] = 0.5;
+    x[10] = M_PI / 2;
+    x[11] = 1.2;
+    x[12] = -1;
+    x[13] = 0.75;
+    x[14] = 3 * M_PI / 4;
+    x[15] = 1.5;
+    x[16] = 0;
+    x[17] = 1;
+    x[18] = -M_PI / 4;
+    x[19] = 1.75;
+    void *voidData = static_cast<void *>(&data);
 
-    metrics::countSections(nPairs * 2, &data);
+    //Timer myTimer;
+    //myTimer.reset();
+    //for (int i = 0; i < 1e4; i++) {
+        metrics::constraints(3, resultCon, 2 * nPairs, x, gradientCon, voidData);
+    //}
+    resultMin = metrics::minimizing(2 * nPairs, x, gradientMin, voidData);
+    // long double deltaT = myTimer.time();
+    //cout << "time in mcs: " << deltaT * 1e6 / 1e4;
+
+    // be = resultMin;
+    
+
+    // x[0] += 1e-6;
+
+    // metrics::constraints(3, resultCon, 2 * nPairs, x, gradientCon, voidData);
+    // resultMin = metrics::minimizing(2 * nPairs, x, gradientMin, voidData);
+
+    // be = (resultMin - be) / 1e-6;
+
+    // cout << "be: " << be << " " << gradientMin[0] << endl;
+
+    for (int i = 0; i < nPairs + 1; i++)
+    {
+        cout << data.r[2 * i + 1].x << " " << data.r[2 * i + 1].y << endl;
+        if (data.isLong[i])
+        {
+            cout << data.r[2 * i + 2].x << " " << data.r[2 * i + 2].y << endl;
+        }
+    }
+
+    cout << resultCon[0] << " " << resultCon[1] << " " << resultCon[2] << endl;
+
+    // опааа вывод градиентов
+    cout << "1: X" << endl;
+    for (int i = 0; i < 2 * nPairs; i++)
+    {
+        cout << gradientCon[i] << " ";
+    }
+    cout << endl;
+
+    cout << "2: Y" << endl;
+    for (int i = 0; i < 2 * nPairs; i++)
+    {
+        cout << gradientCon[2 * nPairs + i] << " ";
+    }
+    cout << endl;
+
+    cout << "3: T" << endl;
+    for (int i = 0; i < 2 * nPairs; i++)
+    {
+        cout << gradientCon[4 * nPairs + i] << " ";
+    }
+    cout << endl;
 
     drawer::setFramerateLimit(60);
     drawer::clear();
@@ -78,7 +146,9 @@ int main(void)
     // }
 
     // drawer::drawDumbBangBang(data);
-    //drawer::drawWay(data, 20);
+    drawer::drawWay(data);
+    drawer::drawVel(data.endPos, data.endVel);
+    drawer::drawVel(data.endPos, data.v[nPairs + 1]);
     drawer::display();
 
     while (!drawer::updateEvent())

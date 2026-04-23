@@ -168,7 +168,7 @@ namespace metrics
                 dV[j + 1] = 0;
                 for(int k = j + 1; k < n / 2; k++) {
                     dR[2 * k + 2] = dR[2 * k + 1] = dR[2 * k];
-                    dV[j + 1] = dV[j];
+                    dV[k + 1] = dV[k];
                 }
                 shortFlag = true;
             }
@@ -176,8 +176,14 @@ namespace metrics
             {
                 aNormal = Point(-a[j].y, a[j].x);
                 dV[j + 1] = (a[j] * (dV[j] ^ a[j]) + aNormal * (dV[j] ^ aNormal) * (tMax[j] - t[2 * j + 2] + t[2 * j]) / tMax[j]) / (MAX_ACC * MAX_ACC);
-                dR[2 * j + 1] = dR[2 * j + 2] = dR[2 * j] + (dV[j] + dV[j + 1]) * (t[2 * j * 2] - t[2 * j]) / 2;
+                dR[2 * j + 2] = dR[2 * j + 1] = dR[2 * j] + (dV[j] + dV[j + 1]) * (t[2 * j + 2] - t[2 * j]) / 2;
+                // if (i == 0 && j == 2) {
+                //     cout << (dV[j] + dV[j + 1]) * (t[2 * j + 2] - t[2 * j]) / 2 << " tudoooo" << endl;
+                //     //cout << dV[j] << " " << dV[j + 1] << " " << t << endl;
+                // }
+                // cout << "kakat: " << j << endl;
             }
+            //cout << "iter: " << j << dR[6] << endl;
         }
         // мы просчитали цепочку, теперь финальный шаг - найти градиент (внезапно)
         deltaR = data->endPos - r[n];
@@ -211,6 +217,7 @@ namespace metrics
         {
             data->x[i] = x[i];
         }
+        // return false;
         return compFlag;
     }
 
@@ -336,9 +343,9 @@ namespace metrics
             else
             {
                 shortFlag = false;
+                dR[2 * i + 1] = dR[2 * i + 2] = v[i + 1];
                 dV[i + 1] = a[i];
             }
-            dR[i + 1] = v[i + 1];
             dT = chainGrad(n, i, shortFlag, data);
             data->gradCon[2 * i + 1] = data->dV[n / 2 + 1].x / MAX_VEL;
             data->gradCon[n + 2 * i + 1] = data->dV[n / 2 + 1].y / MAX_VEL;
@@ -359,6 +366,10 @@ namespace metrics
             }
             data->gradCon[2 * n + 2 * i + 1] *= (MAX_ACC / MAX_VEL);
             data->gradMin[2 * i + 1] *= (MAX_ACC / MAX_VEL);
+            // if (i == 0) {
+            //     cout << "bebe: " << dV[5] << " " << (dV[2] + dV[3]) * (t[6] - t[4]) / 2 << endl;
+            //     // cout << dV[2] << " " << dV[3] << endl;
+            // }
         }
     }
 

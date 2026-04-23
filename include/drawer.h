@@ -61,19 +61,20 @@ namespace drawer
         window.draw(obstacle1);                                                                          // Выводим на экран
     }
 
-    void drawLine(Point p1, Point p2, double w, sf::Color col = sf::Color(0, 0, 0))
+    void drawLine(Point p1, Point p2, double w = LINE_WIDTH, sf::Color col = sf::Color(0, 0, 0))
     {
+        double ang = (p2 - p1).arg();
         sf::RectangleShape line(sf::Vector2f((p2 - p1).mag() * k_draw, w * k_draw));
-        line.rotate(-(p2 - p1).arg() * 180 / M_PI);
+        line.rotate(-ang * 180 / M_PI);
         line.setFillColor(col);
-        line.setPosition((FIELD_DX / 2 + p1.x) * k_draw, (FIELD_DY / 2 - p1.y) * k_draw);
+        line.setPosition((FIELD_DX / 2 + p1.x - w / 2 * sin(ang)) * k_draw, (FIELD_DY / 2 - p1.y - w / 2 * cos(ang)) * k_draw);
         window.draw(line);
     }
     void drawDumbBangBang(MetricsData data)
     {
         Point pos = data.pos, vel = data.vel, acc;
         double time;
-        for (int i = 0; i < data.n/2; i++)
+        for (int i = 0; i < data.n / 2; i++)
         {
             acc = Point(cos(data.x[i * 2]) * MAX_ACC, MAX_ACC * sin(data.x[i * 2]));
             time = data.x[i * 2 + 1];
@@ -83,50 +84,50 @@ namespace drawer
             drawer::drawCircle(pos, 50, sf::Color(128, 0, 255));
         }
     }
-    void drawWay(MetricsData data, double w, double deltaT = 0.1)
+    void drawWay(MetricsData data, double w = LINE_WIDTH, double deltaT = 0.01)
     {
         double t = deltaT, tPlot;
         int i = 0;
         Point p = data.r[0], pNew;
-        for (int j = 0; j < data.n; j++)
+        for (int j = 0; j < data.n / 2; j++)
         {
-            if (j % 2 || data.t[j + 1] >= 0)
+            drawCircle(data.r[2 * j + 1], w + 20, sf::Color(255, 128, 0));
+            if (data.isLong[j])
             {
-                drawCircle(data.r[j + 1], w+20,sf::Color(255,128,0));
+                drawCircle(data.r[2 * j + 2], w + 20, sf::Color(255, 128, 0));
             }
         }
         while (t < data.t[data.n + 2])
         {
             while (data.t[i] < t)
             {
-                i++;    
+                i++;
             }
             i--;
-            if (data.t[i] < 0)
-            {
-                i--;
-            }
             if (i % 2)
             {
-                if (data.t[i] >= 0)
-                {
+                if (data.isLong[i / 2]) {
                     tPlot = t - data.t[i];
                     pNew = data.r[i] + data.v[i / 2 + 1] * tPlot;
-                    drawLine(p, pNew, w,sf::Color(255,0,0));
+                    drawLine(p, pNew, w, sf::Color(255, 0, 0));
                     p = pNew;
-                    // cout << "say wallahi" << endl;
                 }
+                
             }
             else
             {
                 tPlot = t - data.t[i];
                 pNew = data.r[i] + data.v[i / 2] * tPlot + data.a[i / 2] * tPlot * tPlot / 2;
-                drawLine(p, pNew, w,sf::Color(0,255,128));
+                drawLine(p, pNew, w, sf::Color(0, 255, 128));
                 p = pNew;
             }
             t += deltaT;
         }
         pNew = data.r[data.n + 2];
         drawLine(p, pNew, w);
+    }
+
+    void drawVel(Point p, Point v, double w = LINE_WIDTH) {
+        drawLine(p, p + v * VELOCITY_K, w, sf::Color(128, 0, 255));
     }
 }

@@ -4,6 +4,7 @@
 #pragma once
 
 #include <cmath>
+#include <iostream>
 
 using namespace std;
 
@@ -130,5 +131,10 @@ public:
     Point unity() const
     {
         return (*this) / (*this).mag();
+    }
+    // вывести на экран
+    friend ostream& operator<<(ostream& os, const Point& p) {
+        os << "(" << p.x << ", " << p.y << ", " << p.z << ")";
+        return os;
     }
 };
