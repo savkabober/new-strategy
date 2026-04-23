@@ -86,17 +86,17 @@ int main(void)
     x[19] = 1.75;
     void *voidData = static_cast<void *>(&data);
 
-    Timer myTimer;
-    myTimer.reset();
-    for (int i = 0; i < 1e4; i++) {
-        metrics::constraints(3, resultCon, 2 * nPairs, x, gradientCon, voidData);
-    }
-    //resultMin = metrics::minimizing(2 * nPairs, x, gradientMin, voidData);
-    long double deltaT = myTimer.time();
-    cout << "time in mcs: " << deltaT * 1e6 / 1e4 << endl;
+    // Timer myTimer;
+    // myTimer.reset();
+    // for (int i = 0; i < 1e4; i++) {
+    //     metrics::constraints(3, resultCon, 2 * nPairs, x, gradientCon, voidData);
+    // }
+    // //resultMin = metrics::minimizing(2 * nPairs, x, gradientMin, voidData);
+    // long double deltaT = myTimer.time();
+    // cout << "time in mcs: " << deltaT * 1e6 / 1e4 << endl;
 
-    // minimize(data);
-
+    minimize(data);
+    metrics::countSections(data.n,&data);
 
     drawer::setFramerateLimit(60);
     drawer::clear();
@@ -108,7 +108,7 @@ int main(void)
 
     // drawer::drawDumbBangBang(data);
     drawer::drawWay(data);
-    drawer::drawVel(data.endPos, data.endVel);
+    // drawer::drawVel(data.endPos, data.endVel);
     drawer::drawVel(data.endPos, data.v[nPairs + 1]);
     drawer::display();
     while (!drawer::updateEvent())
