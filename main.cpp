@@ -97,6 +97,8 @@ int main(void)
 
     minimize(data);
 
+    // minimize(data);
+    metrics::countSections(data.n,&data);
 
     drawer::setFramerateLimit(60);
     drawer::clear();
@@ -108,7 +110,7 @@ int main(void)
 
     // drawer::drawDumbBangBang(data);
     drawer::drawWay(data);
-    drawer::drawVel(data.endPos, data.endVel);
+    // drawer::drawVel(data.endPos, data.endVel);
     drawer::drawVel(data.endPos, data.v[nPairs + 1]);
     drawer::display();
     while (!drawer::updateEvent())

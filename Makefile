@@ -5,10 +5,8 @@ TARGET = app.exe
 SRC = main.cpp
 
 $(TARGET): $(SRC)
-	$(CXX) $(SRC) -o $(TARGET) $(CXXFLAGS) $(LIBS)
+	$(CXX) $(SRC) -o $(TARGET) $(CXXFLAGS) $(LIBS) && .\$(TARGET)
 
-run: $(TARGET)
-	.\$(TARGET)
 
 
 clean:
