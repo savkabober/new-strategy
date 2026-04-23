@@ -225,7 +225,7 @@ namespace metrics
     {
         Point *dA = data->dA, vNormal, *v = data->v, *a = data->a, aNormal, vel, pos, *dV = data->dV, *r = data->r, *dR = data->dR;
         bool isIn = false;
-        double dT, dP, *tInt, result, t;
+        double dT, dP, *tInt, result = 0, t;
         if (doSafe)
         {
             tInt = data->tIntMin;
@@ -271,7 +271,7 @@ namespace metrics
                             break;
                         dP = 2 * t * (vel.mag2());
                         dP += 2 * (vel ^ pos);
-                        dT += 2 * (vel ^ dV[j + 1]) * t * t;
+                        dT = 2 * (vel ^ dV[j + 1]) * t * t;
                         dT += 2 * ((dV[j + 1] ^ pos) + (vel ^ dR[2 * j + 1])) * t;
                         dT += 2 * (pos ^ dR[2 * j + 1]);
                         dT *= -1 / dP;

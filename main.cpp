@@ -19,7 +19,7 @@ int main(void)
     bool *isLong;
     Point *a, *v, *r, *vMax, *dV, *dR, *dA;
     */
-    int nPairs = 10, nEnemies = 0;
+    int nPairs = 10, nEnemies = 6;
     // Создание переменных для даты
     bool isLongData[nPairs + 1];
     double tData[2 * nPairs + 4], xData[2 * nPairs], tMaxData[nPairs], gradConData[6 * nPairs], gradMinData[2 * nPairs];
@@ -54,6 +54,12 @@ int main(void)
     data.dR = dRData;
     data.dA = dAData;
     data.enemies[0] = AbsRigBody(Point(-1000, 1000), 2 * ROBOT_R, Point(0, 0));
+    data.enemies[1] = AbsRigBody(Point(-1001, 1000), 2 * ROBOT_R, Point(0, 0));
+    data.enemies[2] = AbsRigBody(Point(-1002, 1000), 2 * ROBOT_R, Point(0, 0));
+    data.enemies[3] = AbsRigBody(Point(-1003, 1000), 2 * ROBOT_R, Point(0, 0));
+    data.enemies[4] = AbsRigBody(Point(-1004, 1000), 2 * ROBOT_R, Point(0, 0));
+    data.enemies[5] = AbsRigBody(Point(-1005, 1000), 2 * ROBOT_R, Point(0, 0));
+    // data.enemies[6] = AbsRigBody(Point(-1000, 1000), 2 * ROBOT_R, Point(0, 0));
 
     double resultCon[3], gradientCon[6 * nPairs], x[2 * nPairs], gradientMin[2 * nPairs], resultMin;
     double be;
@@ -80,14 +86,14 @@ int main(void)
     x[19] = 1.75;
     void *voidData = static_cast<void *>(&data);
 
-    //Timer myTimer;
-    //myTimer.reset();
-    //for (int i = 0; i < 1e4; i++) {
+    Timer myTimer;
+    myTimer.reset();
+    for (int i = 0; i < 1e7; i++) {
         metrics::constraints(3, resultCon, 2 * nPairs, x, gradientCon, voidData);
-    //}
-    resultMin = metrics::minimizing(2 * nPairs, x, gradientMin, voidData);
-    // long double deltaT = myTimer.time();
-    //cout << "time in mcs: " << deltaT * 1e6 / 1e4;
+    }
+    //resultMin = metrics::minimizing(2 * nPairs, x, gradientMin, voidData);
+    long double deltaT = myTimer.time();
+    cout << "time in mcs: " << deltaT * 1e6 / 1e7 << endl;
 
     // be = resultMin;
     
