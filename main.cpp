@@ -19,7 +19,7 @@ int main(void)
     bool *isLong;
     Point *a, *v, *r, *vMax, *dV, *dR, *dA;
     */
-    int nPairs = 10, nEnemies = 6;
+    int nPairs = 10, nEnemies = 1;
     // Создание переменных для даты
     bool isLongData[nPairs + 1];
     double tData[2 * nPairs + 4], xData[2 * nPairs], tMaxData[nPairs], gradConData[6 * nPairs], gradMinData[2 * nPairs];
@@ -30,10 +30,10 @@ int main(void)
     // Если с кодом творится пиздец - смотри сюда!!! (все может крашится если ссылается на чето пустое)
     // В будущем стоит сделать все массивы с максимальным значением n. да, потратится сколько то памяти, но зато нет ебли с передачей
     MetricsData data;
-    data.pos = Point(-1500, -1500);
-    data.vel = Point(MAX_VEL, MAX_VEL);
-    data.endPos = Point(1500, 1500);
-    data.endVel = Point(MAX_VEL, 0);
+    data.pos = Point(0, 0);
+    data.vel = Point(0, 0);
+    data.endPos = Point(2000, 0);
+    data.endVel = Point(0, 0);
     data.nEnemies = nEnemies;
     data.n = nPairs * 2;
     data.t = tData;
@@ -53,7 +53,7 @@ int main(void)
     data.dV = dVData;
     data.dR = dRData;
     data.dA = dAData;
-    data.enemies[0] = AbsRigBody(Point(-1000, 1000), 2 * ROBOT_R, Point(0, 0));
+    data.enemies[0] = AbsRigBody(Point(900, 500), 2 * ROBOT_R, Point(0, 0));
     data.enemies[1] = AbsRigBody(Point(-1001, 1000), 2 * ROBOT_R, Point(0, 0));
     data.enemies[2] = AbsRigBody(Point(-1002, 1000), 2 * ROBOT_R, Point(0, 0));
     data.enemies[3] = AbsRigBody(Point(-1003, 1000), 2 * ROBOT_R, Point(0, 0));
@@ -88,78 +88,23 @@ int main(void)
 
     Timer myTimer;
     myTimer.reset();
-    for (int i = 0; i < 1e7; i++) {
+    for (int i = 0; i < 1e6; i++) {
         metrics::constraints(3, resultCon, 2 * nPairs, x, gradientCon, voidData);
     }
     //resultMin = metrics::minimizing(2 * nPairs, x, gradientMin, voidData);
     long double deltaT = myTimer.time();
-    cout << "time in mcs: " << deltaT * 1e6 / 1e7 << endl;
+    cout << "time in mcs: " << deltaT * 1e6 / 1e6 << endl;
 
-    // be = resultMin;
-    
+    // minimize(data);
 
-    // x[0] += 1e-6;
-
-    // metrics::constraints(3, resultCon, 2 * nPairs, x, gradientCon, voidData);
-    // resultMin = metrics::minimizing(2 * nPairs, x, gradientMin, voidData);
-
-    // be = (resultMin - be) / 1e-6;
-
-    // cout << "be: " << be << " " << gradientMin[0] << endl;
-
-    for (int i = 0; i < nPairs + 1; i++)
-    {
-        cout << data.r[2 * i + 1].x << " " << data.r[2 * i + 1].y << endl;
-        if (data.isLong[i])
-        {
-            cout << data.r[2 * i + 2].x << " " << data.r[2 * i + 2].y << endl;
-        }
-    }
-
-    cout << resultCon[0] << " " << resultCon[1] << " " << resultCon[2] << endl;
-
-    // опааа вывод градиентов
-    cout << "1: X" << endl;
-    for (int i = 0; i < 2 * nPairs; i++)
-    {
-        cout << gradientCon[i] << " ";
-    }
-    cout << endl;
-
-    cout << "2: Y" << endl;
-    for (int i = 0; i < 2 * nPairs; i++)
-    {
-        cout << gradientCon[2 * nPairs + i] << " ";
-    }
-    cout << endl;
-
-    cout << "3: T" << endl;
-    for (int i = 0; i < 2 * nPairs; i++)
-    {
-        cout << gradientCon[4 * nPairs + i] << " ";
-    }
-    cout << endl;
 
     drawer::setFramerateLimit(60);
     drawer::clear();
     for (int i = 0; i < nEnemies; i++)
     {
-        drawer::drawCircle(data.enemies[i].getPos(), ROBOT_R,sf::Color(255,0,0));
-        drawer::drawLine(data.enemies[i].getPos(), data.enemies[i].getPos() + data.enemies[i].getVel(), 10,sf::Color(255,0,0));
+        drawer::drawCircle(data.enemies[i].getPos(), 2 * ROBOT_R,sf::Color(128,255,128));
+        // drawer::drawLine(data.enemies[i].getPos(), data.enemies[i].getPos() + data.enemies[i].getVel(), 10,sf::Color(255,0,0));
     }
-    // for (int i = 0; i < 100; i++)
-    // {
-    //     data.vel = Point(MAX_VEL * cos(2 * M_PI / 100 * i), MAX_VEL * sin(2 * M_PI / 100 * i));
-    //     for (int j = 0; j < 100; j++)
-    //     {
-    //         drawer::clear();
-    //         data.endVel = Point(MAX_VEL * cos(2 * M_PI / 100 * j), MAX_VEL * sin(2 * M_PI / 100 * j));
-    //         minimize(data);
-    //         metrics::countSections(nPairs * 2, &data);
-    //         drawer::drawWay(data, 20);
-    //         drawer::display();
-    //     }
-    // }
 
     // drawer::drawDumbBangBang(data);
     drawer::drawWay(data);

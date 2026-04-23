@@ -33,20 +33,21 @@ void minimize(MetricsData data)
     double const_time = ((data.endPos - data.pos) - (data.vel + Vm) / 2 * acc_time - (data.endVel + Vm) / 2 * dec_time).mag() / Vm.mag();
     if (const_time < EPSILON)
         const_time = 0;
-    //double T = acc_time + dec_time + const_time;
+    // double T = acc_time + dec_time + const_time;
 
     for (int i = 0; i < data.n / 2; i++)
     {
-        if(const_time>0)
-            data.x[i*2] = Vm.arg();
+        if (const_time > 0)
+            data.x[i * 2] = Vm.arg();
         else
         {
-            double angle = vecAux::getAngleBetweenPoints(data.vel,Point(0,0),(Vm-data.vel));
-            double l = cos(angle)*data.vel.mag()+sqrtf(cos(angle)*cos(angle)*data.vel.mag2()-(data.vel.mag2()-MAX_VEL*MAX_VEL));
-            double beta = asin(l/MAX_VEL*sin(angle));
-            data.x[i*2] = data.vel.arg()-beta;
+            double angle = vecAux::getAngleBetweenPoints(data.vel, Point(0, 0), (Vm - data.vel));
+            double cA = cos(angle);
+            double l = cA * data.vel.mag() + sqrt(cA * cA * data.vel.mag2() - (data.vel.mag2() - MAX_VEL * MAX_VEL));
+            double beta = asin(l / MAX_VEL * sin(angle));
+            data.x[i * 2] = data.vel.arg() - beta;
         }
-        data.x[i*2+1] = (acc_time+const_time)/data.n*2;
+        data.x[i * 2 + 1] = (acc_time + const_time) / data.n * 2;
     }
     metrics::countSections(data.n, &data);
     drawer::drawWay(data, 20);
@@ -57,6 +58,6 @@ void minimize(MetricsData data)
 
     double minf;
     nlopt_optimize(opt, data.x, &minf);
-    std::cout<<minf<<" "<<data.resultCon[0]<<" "<<data.resultCon[1]<<" "<<data.resultCon[2]<<"\n";
+    std::cout << minf << " " << data.resultCon[0] << " " << data.resultCon[1] << " " << data.resultCon[2] << "\n";
     nlopt_destroy(opt);
 }

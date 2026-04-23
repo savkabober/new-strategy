@@ -75,10 +75,11 @@ namespace metrics
             tInt = data->tIntMin;
         else
             tInt = data->tIntCon;
-        int nProd, nowIdx = 0;
+        int nProd, nowIdx;
         bool isIn;
         for (int i = 0; i < data->nEnemies; i++)
         {
+            nowIdx = 0;
             rad = data->enemies[i].getRad();
             pos = data->enemies[i].getPos();
             vel = data->enemies[i].getVel();
@@ -90,6 +91,7 @@ namespace metrics
                     intersection = 0;
                     tInt[6 * (n / 2 + 1) * i] = 0;
                     nowIdx++;
+                    cout << "huiDFSEJNIEGOWRGOWRGVERNV" << endl;
                 }
                 else
                     isIn = false;
@@ -99,6 +101,7 @@ namespace metrics
                 if ((pos - r[0]).mag() < rad)
                     continue;
                 isIn = false;
+                cout << "OK" << endl;
             }
 
             for (int j = 0; j < n / 2 + 1; j++)
@@ -144,6 +147,8 @@ namespace metrics
                         tInt[6 * (n / 2 + 1) * i + 6 * j + nowIdx + 4] = -1;
                     nowIdx = 0;
                 }
+                else
+                    tInt[6 * (n / 2 + 1) * i + 6 * j + 4] = tInt[6 * (n / 2 + 1) * i + 6 * j + 5] = -1;
             }
         }
         return result;
@@ -166,7 +171,8 @@ namespace metrics
                 dR[2 * j + 1] = dR[2 * j] + (v[j] + v[j + 1]) * dT / 2 + dV[j] * (t[2 * j + 1] - t[2 * j]) / 2;
                 dR[2 * j + 2] = dR[2 * j + 1] - v[j + 1] * dT;
                 dV[j + 1] = 0;
-                for(int k = j + 1; k < n / 2; k++) {
+                for (int k = j + 1; k < n / 2; k++)
+                {
                     dR[2 * k + 2] = dR[2 * k + 1] = dR[2 * k];
                     dV[k + 1] = dV[k];
                 }
@@ -183,7 +189,7 @@ namespace metrics
                 // }
                 // cout << "kakat: " << j << endl;
             }
-            //cout << "iter: " << j << dR[6] << endl;
+            // cout << "iter: " << j << dR[6] << endl;
         }
         // мы просчитали цепочку, теперь финальный шаг - найти градиент (внезапно)
         deltaR = data->endPos - r[n];
@@ -335,7 +341,8 @@ namespace metrics
                 dR[2 * i + 1] = 0;
                 dR[2 * i + 2] = v[i + 1];
                 dV[i + 1] = 0;
-                for (int j = i + 1; j < n / 2; j++) {
+                for (int j = i + 1; j < n / 2; j++)
+                {
                     dV[j + 1] = dV[j];
                     dR[2 * j + 1] = dR[2 * j + 2] = dR[2 * j];
                 }
@@ -378,7 +385,8 @@ namespace metrics
     {
         MetricsData *data = static_cast<MetricsData *>(voidData);
         mainActions(n, x, data);
-        for (int i = 0; i < int(n); i++) {
+        for (int i = 0; i < int(n); i++)
+        {
             grad[i] = data->gradMin[i];
         }
         return data->resultMin;
@@ -392,7 +400,8 @@ namespace metrics
         result[0] = data->resultCon[0];
         result[1] = data->resultCon[1];
         result[2] = data->resultCon[2];
-        for (int i = 0; i < 3 * int(n); i++) {
+        for (int i = 0; i < 3 * int(n); i++)
+        {
             grad[i] = data->gradCon[i];
         }
     }
