@@ -24,6 +24,7 @@ void minimize(MetricsData data)
     // nlopt_add_equality_mconstraint(opt, 3, metrics::constraints, data_ptr, tolerances); // задаем функцию ограничений
     // nlopt_set_ftol_rel(opt, 1e-4);                                                      // abs??  x??          - задаем критерий остановки - относительное изменение метрики меньше 1е-4 (мб сделать для иксов? или абсолютное?)
 
+    double resultCon[3], gradientCon[3 * data.n], x[data.n], gradientMin[data.n], resultMin;
     Point Vm = bangbang(data.vel, data.endVel, data.endPos - data.pos, MAX_ACC, MAX_VEL);
     // std::cout<<Vm.x<<" "<<Vm.y<<"\n";
     // double acc_ang = (Vm - data.vel).arg();
@@ -38,21 +39,20 @@ void minimize(MetricsData data)
     for (int i = 0; i < data.n / 2; i++)
     {
         if (const_time > 0)
-            data.x[i * 2] = Vm.arg();
+            x[i * 2] = Vm.arg();
         else
         {
             double angle = vecAux::getAngleBetweenPoints(data.vel, Point(0, 0), (Vm - data.vel));
             double cA = cos(angle);
             double l = cA * data.vel.mag() + sqrt(cA * cA * data.vel.mag2() - (data.vel.mag2() - MAX_VEL * MAX_VEL));
             double beta = asin(l / MAX_VEL * sin(angle));
-            data.x[i * 2] = data.vel.arg() - beta;
+            x[i * 2] = data.vel.arg() - beta;
         }
-        data.x[i * 2 + 1] = (acc_time + const_time) / data.n * 2;
+        x[i * 2 + 1] = (acc_time + const_time) / data.n * 2;
     }
-    // int swithcId = std::trunc((acc_time + const_time) / (T / data.n * 2));
-    // data.x[swithcId * 2] = dec_ang;
-    // data.x[swithcId * 2 + 1] = T / data.n * 2 - fmod((acc_time + const_time), (T / data.n * 2));
-    // data.x[swithcId * 2 - 1] = T / data.n * 2 + fmod((acc_time + const_time), (T / data.n * 2));
+    void *voidData = static_cast<void *>(&data);
+
+    metrics::constraints(3, resultCon, data.n, x, gradientCon, voidData);
 
     // double minf;
     // nlopt_optimize(opt, data.x, &minf);

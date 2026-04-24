@@ -19,13 +19,13 @@ int main(void)
     bool *isLong;
     Point *a, *v, *r, *vMax, *dV, *dR, *dA;
     */
-    int nPairs = 10, nEnemies = 1;
+    int nPairs = 10, nEnemies = 6;
     // Создание переменных для даты
     bool isLongData[nPairs + 1];
     double tData[2 * nPairs + 4], xData[2 * nPairs], tMaxData[nPairs], gradConData[6 * nPairs], gradMinData[2 * nPairs];
     double tIntConData[6 * (nPairs + 1) * nEnemies], tIntMinData[6 * (nPairs + 1) * nEnemies], resultConData[3];
     Point rData[2 * nPairs + 4], vData[nPairs + 2], aData[nPairs + 1], vMaxData[nPairs];
-    Point dVData[nPairs + 2], dRData[2 * nPairs + 2], dAData[nPairs + 1];
+    Point dVData[nPairs + 2], dRData[2 * nPairs + 4], dAData[nPairs + 1];
     // Заполнение даты, чтобы в ней все было
     // Если с кодом творится пиздец - смотри сюда!!! (все может крашится если ссылается на чето пустое)
     // В будущем стоит сделать все массивы с максимальным значением n. да, потратится сколько то памяти, но зато нет ебли с передачей
@@ -33,7 +33,7 @@ int main(void)
     data.pos = Point(0, 0);
     data.vel = Point(0, 0);
     data.endPos = Point(2000, 0);
-    data.endVel = Point(0, 0);
+    data.endVel = Point(10, 0); 
     data.nEnemies = nEnemies;
     data.n = nPairs * 2;
     data.t = tData;
@@ -96,9 +96,6 @@ int main(void)
     cout << "time in mcs: " << deltaT * 1e6 / 1e4 << endl;
 
     minimize(data);
-
-    // minimize(data);
-    metrics::countSections(data.n,&data);
 
     drawer::setFramerateLimit(60);
     drawer::clear();
