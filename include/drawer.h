@@ -12,7 +12,7 @@ namespace drawer
 {
     double k_draw = min(double(PIXELS_X) / FIELD_DX, double(PIXELS_Y) / FIELD_DY);
     // Создаем окно размером 1000x800 пикселей.
-    sf::RenderWindow window(sf::VideoMode(FIELD_DX *k_draw, FIELD_DY *k_draw), "apsdoopasd");
+    sf::RenderWindow window(sf::VideoMode(FIELD_DX *k_draw, FIELD_DY *k_draw), "megaknight67");
 
     // Определяем цвета для удобства.
     sf::Color colorField(34, 139, 34); // ForestGreen (Зеленый)

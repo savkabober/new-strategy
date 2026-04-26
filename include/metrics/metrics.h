@@ -6,6 +6,8 @@
 #include "../auxiliary/vecAux.h"
 #include "MetricsData.h"
 #include <iostream>
+#include "../Timer.h"
+#include "../drawer.h"
 
 using namespace std;
 
@@ -27,7 +29,7 @@ namespace metrics
             tMax[i] = (vMax[i] - v[i]).mag() / MAX_ACC;
             // cout << "AAAAA: " << tMax[i] << endl;
             if (tMax[i] == 0)
-                a[i] = Point(MAX_ACC, 0);
+                a[i] = Point(-vMax[i].y, vMax[i].x) * MAX_ACC / MAX_VEL;
             else
             {
                 a[i] = (vMax[i] - v[i]) / tMax[i];
@@ -104,7 +106,7 @@ namespace metrics
                     intersection = 0;
                     tInt[6 * (n / 2 + 1) * i] = 0;
                     nowIdx++;
-                    cout << "huiDFSEJNIEGOWRGOWRGVERNV" << endl;
+                    // cout << "huiDFSEJNIEGOWRGOWRGVERNV" << endl;
                 }
                 else
                     isIn = false;
@@ -140,7 +142,7 @@ namespace metrics
                 nowIdx = 0;
                 if (data->isLong[j])
                 {
-                    nProd = vecAux::lineCircleIntersection(prod, rad + data->safeDist * (doSafe), v[j] - vel, r[2 * j + 1] - pos);
+                    nProd = vecAux::lineCircleIntersection(prod, rad + data->safeDist * (doSafe), v[j + 1] - vel, r[2 * j + 1] - pos);
                     for (int k = 0; k < nProd; k++)
                     {
                         if (prod[k] < 0)
@@ -164,20 +166,23 @@ namespace metrics
             }
             if (isIn)
             {
-                for (int j = 1; j <= (n / 2 + 1); j++)
+                for (int j = 1; j <= 6 * (n / 2 + 1); j++)
                 {
                     if (tInt[6 * (n / 2 + 1) * (i + 1) - j] >= 0)
+                    {
                         tInt[6 * (n / 2 + 1) * (i + 1) - j] = -1;
+                        break;
+                    }
                 }
             }
         }
         return result;
     }
     // Функция просчета цепочки
-    double chainGrad(int n, int i, bool shortFl, MetricsData *data)
+    void chainGrad(int n, int i, bool shortFl, MetricsData *data)
     {
         Point *dV = data->dV, *dR = data->dR, *a = data->a, *v = data->v, *r = data->r, aNormal, deltaR, *dA = data->dA;
-        double *t = data->t, *tMax = data->tMax, deltaT, dP, dT;
+        double *t = data->t, *tMax = data->tMax, deltaT, dP, dTNow, *dT = data->dT;
         bool shortFlag = shortFl;
         // В данный момент просчитаны все участки езды. Начнем брать производную по времени.
         for (int j = i + 1; j < n / 2 && !shortFlag; j++)
@@ -187,12 +192,15 @@ namespace metrics
             // а производная перемещения сохраняется
             if (data->isLong[j])
             {
-                dT = -(dV[j] ^ a[j]) / (MAX_ACC * MAX_ACC);
-                dR[2 * j + 1] = dR[2 * j] + (v[j] + v[j + 1]) * dT / 2 + dV[j] * (t[2 * j + 1] - t[2 * j]) / 2;
-                dR[2 * j + 2] = dR[2 * j + 1] - v[j + 1] * dT;
+                dTNow = -(dV[j] ^ a[j]) / (MAX_ACC * MAX_ACC);
+                dR[2 * j + 1] = dR[2 * j] + (v[j] + v[j + 1]) * dTNow / 2 + dV[j] * (t[2 * j + 1] - t[2 * j]) / 2;
+                dR[2 * j + 2] = dR[2 * j + 1] - v[j + 1] * dTNow;
                 dV[j + 1] = 0;
+                dT[2 * j + 1] = dT[2 * i + 2] + dTNow;
+                dT[2 * j + 2] = dT[2 * i + 2];
                 for (int k = j + 1; k < n / 2; k++)
                 {
+                    dT[2 * k + 2] = dT[2 * k + 1] = dT[2 * i + 2];
                     dR[2 * k + 2] = dR[2 * k + 1] = dR[2 * k];
                     dV[k + 1] = dV[k];
                 }
@@ -200,6 +208,7 @@ namespace metrics
             }
             else
             {
+                dT[2 * j + 2] = dT[2 * j + 1] = dT[2 * i + 2];
                 aNormal = Point(-a[j].y, a[j].x);
                 dV[j + 1] = (a[j] * (dV[j] ^ a[j]) + aNormal * (dV[j] ^ aNormal) * (tMax[j] - t[2 * j + 2] + t[2 * j]) / tMax[j]) / (MAX_ACC * MAX_ACC);
                 dR[2 * j + 2] = dR[2 * j + 1] = dR[2 * j] + (dV[j] + dV[j + 1]) * (t[2 * j + 2] - t[2 * j]) / 2;
@@ -212,15 +221,15 @@ namespace metrics
             // cout << "iter: " << j << dR[6] << endl;
         }
         // мы просчитали цепочку, теперь финальный шаг - найти градиент (внезапно)
-        dT = -(dV[n / 2] ^ a[n / 2]) / (MAX_ACC * MAX_ACC);
-        dR[n + 1] = dR[n + 2] = dR[n] + (v[n / 2] + v[n / 2 + 1]) * dT / 2 + dV[n / 2] * (t[n + 1] - t[n]) / 2;
+        dTNow = -(dV[n / 2] ^ a[n / 2]) / (MAX_ACC * MAX_ACC);
+        dR[n + 1] = dR[n + 2] = dR[n] + (v[n / 2] + v[n / 2 + 1]) * dTNow / 2 + dV[n / 2] * (t[n + 1] - t[n]) / 2;
         dV[n / 2 + 1] = 0;
+        dT[n + 1] = dT[n + 2] = dT[2 * i + 2] + dTNow;
         for (int j = i; j < n / 2 + 1; j++)
         {
             aNormal = Point(-a[j].y, a[j].x);
             dA[j] = aNormal * (aNormal ^ (dV[j + 1] - dV[j])) / (t[2 * j + 1] - t[2 * j]) / (MAX_ACC * MAX_ACC);
         }
-        return dT;
     }
 
     bool isRepeated(int n, const double *x, MetricsData *data)
@@ -238,15 +247,15 @@ namespace metrics
         {
             data->x[i] = x[i];
         }
-        return false;
+        // return false;
         return compFlag;
     }
 
     double intGrad(int n, MetricsData *data, int i, bool doSafe)
     {
-        Point *dA = data->dA, vNormal, *v = data->v, *a = data->a, aNormal, vel, pos, *dV = data->dV, *r = data->r, *dR = data->dR;
+        Point *dA = data->dA, *v = data->v, *a = data->a, aNormal, vel, pos, *dV = data->dV, *r = data->r, *dR = data->dR;
         bool isIn = false;
-        double dT, dP, *tInt, result = 0, t;
+        double dTNow, dP, *tInt, result = 0, t, *dT = data->dT;
         if (doSafe)
         {
             tInt = data->tIntMin;
@@ -255,9 +264,17 @@ namespace metrics
         {
             tInt = data->tIntCon;
         }
-        for (int j = i; j < n / 2 + 1; j++)
+        for (int k = 0; k < data->nEnemies; k++)
         {
-            for (int k = 0; k < data->nEnemies; k++)
+            isIn = false;
+            for (int j = 0; j < i; j++) {
+                for (int s = 0; s < 6; s++) {
+                    if (tInt[6 * (n / 2 + 1) * k + 6 * j + s] >= 0) {
+                        isIn = !isIn;
+                    }
+                }
+            }
+            for (int j = i; j < n / 2 + 1; j++)
             {
                 vel = v[j] - data->enemies[k].getVel();
                 pos = r[2 * j] - data->enemies[k].getPos();
@@ -270,48 +287,59 @@ namespace metrics
                     dP += 3 * (a[j] ^ vel) * t * t;
                     dP += 2 * t * ((a[j] ^ pos) + vel.mag2());
                     dP += 2 * (vel ^ pos);
-                    dT = ((dA[j] ^ vel) + (a[j] ^ dV[j])) * t * t * t;
-                    dT += (((dA[j] ^ pos) + (a[j] ^ dR[2 * j])) + 2 * (vel ^ dV[j])) * t * t;
-                    dT += 2 * ((dV[j] ^ pos) + (vel ^ dR[2 * j])) * t;
-                    dT += 2 * (pos ^ dR[2 * j]);
-                    dT *= -1 / dP;
+                    dTNow = ((dA[j] ^ vel) + (a[j] ^ dV[j])) * t * t * t;
+                    dTNow += (((dA[j] ^ pos) + (a[j] ^ dR[2 * j])) + 2 * (vel ^ dV[j])) * t * t;
+                    dTNow += 2 * ((dV[j] ^ pos) + (vel ^ dR[2 * j])) * t;
+                    dTNow += 2 * (pos ^ dR[2 * j]);
+                    dTNow *= -1 / dP;
+                    // if (i == 1)
+                    // {
+                    //     cout << "dT: " << dTNow << " " << 6 * (n / 2 + 1) * k + 6 * j + s << " " << t << endl;
+                    // }
                     if (!isIn)
-                        result -= dT;
+                        result -= dTNow + dT[2 * j];
                     else
-                        result += dT;
+                        result += dTNow + dT[2 * j];
                     isIn = !isIn;
                 }
                 if (data->isLong[j])
                 {
+                    // cout << "long " << j << endl;
                     vel = v[j + 1] - data->enemies[k].getVel();
                     pos = r[2 * j + 1] - data->enemies[k].getPos();
                     for (int s = 0; s < 2; s++)
                     {
                         t = tInt[6 * (n / 2 + 1) * k + 6 * j + s + 4];
+                        // cout << "hui " << 6 * (n / 2 + 1) * k + 6 * j + s + 4 << " " << t << " " << i << endl;
                         if (t < 0)
                             break;
                         dP = 2 * t * (vel.mag2());
                         dP += 2 * (vel ^ pos);
-                        dT = 2 * (vel ^ dV[j + 1]) * t * t;
-                        dT += 2 * ((dV[j + 1] ^ pos) + (vel ^ dR[2 * j + 1])) * t;
-                        dT += 2 * (pos ^ dR[2 * j + 1]);
-                        dT *= -1 / dP;
+                        dTNow = 2 * (vel ^ dV[j + 1]) * t * t;
+                        dTNow += 2 * ((dV[j + 1] ^ pos) + (vel ^ dR[2 * j + 1])) * t;
+                        dTNow += 2 * (pos ^ dR[2 * j + 1]);
+                        dTNow *= -1 / dP;
+                        // if (i == 1)
+                        // {
+                        //     cout << "dT: " << dTNow << " " << 6 * (n / 2 + 1) * k + 6 * j + s + 4 << " " << t << endl;
+                        // }
                         if (!isIn)
-                            result -= dT;
+                            result -= dTNow + dT[2 * j + 1];
                         else
-                            result += dT;
+                            result += dTNow + dT[2 * j + 1];
                         isIn = !isIn;
                     }
                 }
             }
         }
+        // if (i == 1 && doSafe) cout << "resiadndawo " << result << endl;
         return result;
     }
 
     void mainActions(int n, const double *x, MetricsData *data)
     {
-        Point vNormal, *vMax = data->vMax, *a = data->a, *dV = data->dV, *dR = data->dR, *v = data->v;
-        double dT, *t = data->t, *tMax = data->tMax;
+        Point vNormal, dNormal, *vMax = data->vMax, *a = data->a, *dV = data->dV, *dR = data->dR, *v = data->v;
+        double *t = data->t, *tMax = data->tMax, *dT = data->dT, dTNow;
         bool shortFlag;
         if (isRepeated(n, x, data))
             return;
@@ -319,73 +347,79 @@ namespace metrics
         data->resultCon[0] = (data->r[n + 1] - data->endPos).x * MAX_ACC / (MAX_VEL * MAX_VEL);
         data->resultCon[1] = (data->r[n + 1] - data->endPos).y * MAX_ACC / (MAX_VEL * MAX_VEL);
         data->resultCon[2] = countIntersections(n, data, false) * (MAX_ACC / MAX_VEL);
-        data->resultMin = (countIntersections(n, data, true) + t[n + 2]) * MAX_ACC / MAX_VEL;
+        data->resultMin = (countIntersections(n, data, true) * K_INTERSECT + t[n + 2]) * MAX_ACC / MAX_VEL;
+        // cout << "res " << data->resultMin - t[n + 2] << endl;
+        // cout << countIntersections(n, data, true) << endl;
         for (int i = 0; i < n / 2; i++)
         {
-            dV[i] = dR[2 * i] = 0;
+            dV[i] = dR[2 * i] = Point(0, 0);
+            dT[2 * i] = 0;
             vNormal = Point(-vMax[i].y, vMax[i].x);
             if (data->isLong[i])
             {
-                dT = (a[i] ^ vNormal) / (MAX_ACC * MAX_ACC);
+                dTNow = (a[i] ^ vNormal) / (MAX_ACC * MAX_ACC);
                 dV[i + 1] = vNormal;
-                dR[2 * i + 1] = dV[i + 1] * (t[2 * i + 1] - t[2 * i]) / 2 + (v[i] + v[i + 1]) * dT / 2;
-                dR[2 * i + 2] = dR[2 * i + 1] + dV[i + 1] * (t[2 * i + 2] - t[2 * i + 1]) - v[i + 1] * dT;
+                dR[2 * i + 1] = dV[i + 1] * (t[2 * i + 1] - t[2 * i]) / 2 + (v[i] + v[i + 1]) * dTNow / 2;
+                dR[2 * i + 2] = dR[2 * i + 1] + dV[i + 1] * (t[2 * i + 2] - t[2 * i + 1]) - v[i + 1] * dTNow;
+                dT[2 * i + 1] = dTNow;
+                dT[2 * i + 2] = 0;
             }
             else
             {
-                dV[i + 1] = vNormal * (t[2 * i + 1] - t[2 * i]) / tMax[i];
+                dT[2 * i + 2] = dT[2 * i + 1] = 0;
+                dNormal = Point(-(vMax[i].y - v[i].y), (vMax[i].x - v[i].x));
+                dV[i + 1] = dNormal * (dNormal ^ vNormal) * (t[2 * i + 1] - t[2 * i]);
+                dV[i + 1] /= (tMax[i] * tMax[i] * tMax[i] * MAX_ACC * MAX_ACC);
                 dR[2 * i + 1] = dR[2 * i + 2] = dV[i + 1] * (t[2 * i + 1] - t[2 * i]) / 2;
             }
-            dT = chainGrad(n, i, false, data);
+            chainGrad(n, i, false, data);
             data->gradCon[2 * i] = data->dR[n + 1].x * MAX_ACC / (MAX_VEL * MAX_VEL);
             data->gradCon[n + 2 * i] = data->dR[n + 1].y * MAX_ACC / (MAX_VEL * MAX_VEL);
-            data->gradMin[2 * i] = dT;
-            dT = intGrad(n, data, i, false);
-            data->gradCon[2 * n + 2 * i] = dT;
-            dT = intGrad(n, data, i, true);
-            data->gradMin[2 * i] += dT;
+            data->gradMin[2 * i] = data->dT[n + 2];
+            // if (i == 3) {
+            //     cout << "pre " << data->gradMin[2 * i] << endl;
+            // }
+            data->gradCon[2 * n + 2 * i] = intGrad(n, data, i, false);
+            data->gradMin[2 * i] += intGrad(n, data, i, true) * K_INTERSECT;
+            // if (i == 3) {
+            //     cout << "aft " << data->gradMin[2 * i] << endl;
+            // }
             data->gradCon[2 * n + 2 * i] *= (MAX_ACC / MAX_VEL);
             data->gradMin[2 * i] *= (MAX_ACC / MAX_VEL);
+            // if (i == 1) return;
         }
         for (int i = 0; i < n / 2; i++)
         {
-            dV[i] = dR[2 * i] = 0;
+            dV[i] = dR[2 * i] = Point(0, 0);
+            dT[2 * i] = 0;
             if (data->isLong[i])
             {
                 shortFlag = true;
                 dR[2 * i + 1] = 0;
                 dR[2 * i + 2] = v[i + 1];
                 dV[i + 1] = 0;
+                dT[2 * i + 1] = 0;
+                dT[2 * i + 2] = 1;
                 for (int j = i + 1; j < n / 2; j++)
                 {
+                    dT[2 * j + 2] = dT[2 * j + 1] = dT[2 * i + 2];
                     dV[j + 1] = dV[j];
                     dR[2 * j + 1] = dR[2 * j + 2] = dR[2 * j];
                 }
             }
             else
             {
+                dT[2 * i + 1] = dT[2 * i + 2] = 1;
                 shortFlag = false;
                 dR[2 * i + 1] = dR[2 * i + 2] = v[i + 1];
                 dV[i + 1] = a[i];
             }
-            dT = chainGrad(n, i, shortFlag, data);
+            chainGrad(n, i, shortFlag, data);
             data->gradCon[2 * i + 1] = data->dR[n + 1].x * MAX_ACC / (MAX_VEL * MAX_VEL);
             data->gradCon[n + 2 * i + 1] = data->dR[n + 1].y * MAX_ACC / (MAX_VEL * MAX_VEL);
-            data->gradMin[2 * i + 1] = dT + 1;
-            dT = intGrad(n, data, i, false);
-            data->gradCon[2 * n + 2 * i + 1] = dT;
-            for (int j = 0; j < data->nEnemies; j++)
-            {
-                if ((data->enemies[j].getPos() - data->r[2 * i + 2]).mag() < data->enemies[j].getRad())
-                    data->gradCon[2 * n + 2 * i + 1] += 1;
-            }
-            dT = intGrad(n, data, i, true);
-            data->gradMin[2 * i + 1] += dT;
-            for (int j = 0; j < data->nEnemies; j++)
-            {
-                if ((data->enemies[j].getPos() - data->r[2 * i + 2]).mag() < data->enemies[j].getRad() + data->safeDist)
-                    data->gradMin[2 * i + 1] += 1;
-            }
+            data->gradMin[2 * i + 1] = data->dT[n + 2];
+            data->gradCon[2 * n + 2 * i + 1] = intGrad(n, data, i, false);
+            data->gradMin[2 * i + 1] += intGrad(n, data, i, true) * K_INTERSECT;
             data->gradCon[2 * n + 2 * i + 1] *= (MAX_ACC / MAX_VEL);
             data->gradMin[2 * i + 1] *= (MAX_ACC / MAX_VEL);
             // cout << "hui" << endl;
@@ -401,10 +435,32 @@ namespace metrics
     {
         MetricsData *data = static_cast<MetricsData *>(voidData);
         mainActions(n, x, data);
-        for (int i = 0; i < int(n); i++)
+        if (grad)
         {
-            grad[i] = data->gradMin[i];
+            // for (int i = 0; i < int(n); i++)
+            // {
+            //     data->x[i] += 1e-8;
+            //     countSections(n, data);
+            //     grad[i] = ((countIntersections(n, data, true) * K_INTERSECT + data->t[n + 2]) * MAX_ACC / MAX_VEL - data->resultMin) / 1e-8;
+            //     data->x[i] -= 1e-8;
+            // }
+            // for (int i = 0; i < int(n); i++)
+            // {
+            //     if (abs((grad[i] - data->gradMin[i]) / grad[i]) > 0.1 && abs(grad[i]) > 0.02)
+            //     {
+            //         cout << "PIZDA MIN " << grad[i] << " " << data->gradMin[i] << " " << i << endl;
+            //         for (int j = 0; j < int(n); j++) {
+            //             cout << x[j] << " ";
+            //         }
+            //         cout << endl;
+            //     }
+            // }
+            for (int i = 0; i < int(n); i++)
+            {
+                grad[i] = data->gradMin[i];
+            }
         }
+
         return data->resultMin;
     }
 
@@ -415,10 +471,41 @@ namespace metrics
         mainActions(n, x, data);
         result[0] = data->resultCon[0];
         result[1] = data->resultCon[1];
-        result[2] = data->resultCon[2];
-        for (int i = 0; i < 3 * int(n); i++)
+        // result[2] = data->resultCon[2];
+        if (grad)
         {
-            grad[i] = data->gradCon[i];
+            // for (int i = 0; i < int(n); i++)
+            // {
+            //     data->x[i] += 1e-8;
+            //     countSections(n, data);
+            //     grad[i] = ((data->r[n + 1] - data->endPos).x * MAX_ACC / (MAX_VEL * MAX_VEL) - result[0]) / 1e-8;
+            //     grad[n + i] = ((data->r[n + 1] - data->endPos).y * MAX_ACC / (MAX_VEL * MAX_VEL) - result[1]) / 1e-8;
+            //     data->x[i] -= 1e-8;
+            // }
+            // for (int i = 0; i < 2 * int(n); i++)
+            // {
+            //     if (abs((grad[i] - data->gradCon[i]) / grad[i]) > 0.02)
+            //     {
+            //         cout << "PIZDA " << grad[i] << " " << data->gradCon[i] << " " << i << endl;
+            //         // for (int j = 0; j < int(n); j++) {
+            //         //     cout << x[j] << " ";
+            //         // }
+            //         // cout << endl;
+            //     }
+            // }
+            for (int i = 0; i < 2 * int(n); i++)
+            {
+                grad[i] = data->gradCon[i];
+            }
         }
+
+        Timer myTimer;
+        MetricsData drawData = *data;
+        drawer::clear();
+        drawer::drawWay(drawData);
+        myTimer.reset();
+        drawer::display();
+        while (myTimer.time() < 1)
+            ;
     }
 }
