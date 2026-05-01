@@ -6,6 +6,7 @@
 #include <nlopt.h>
 #include "../metrics/metrics.h"
 #include "initialApprox.h"
+
 void minimize(MetricsData data)
 {
     nlopt_opt opt = nlopt_create(NLOPT_LD_SLSQP, data.n); // создаем объект оптимайзера
@@ -28,7 +29,7 @@ void minimize(MetricsData data)
     // nlopt_set_check_gradient_step(opt, 1e-5);   // шаг для численного сравнения
 
     double resultCon[3], gradientCon[3 * data.n], x[data.n], gradientMin[data.n], resultMin;
-    Point Vm = bangbang(data.vel, data.endVel, data.endPos - data.pos, MAX_ACC, MAX_VEL);
+    Point Vm = bangBang::bangBang(data.vel, data.endVel, data.endPos - data.pos, MAX_ACC, MAX_VEL);
     // std::cout<<Vm.x<<" "<<Vm.y<<"\n";
     // double acc_ang = (Vm - data.vel).arg();
     // double dec_ang = (data.endVel - Vm).arg();

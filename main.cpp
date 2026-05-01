@@ -19,7 +19,7 @@ int main(void)
     bool *isLong;
     Point *a, *v, *r, *vMax, *dV, *dR, *dA;
     */
-    int nPairs = 6, nEnemies = 3;
+    int nPairs = 10, nEnemies = 6;
     // Создание переменных для даты
     bool isLongData[nPairs + 1];
     double tData[2 * nPairs + 4], xData[2 * nPairs], tMaxData[nPairs], gradConData[6 * nPairs], gradMinData[2 * nPairs];
@@ -33,7 +33,7 @@ int main(void)
     data.pos = Point(0, 0);
     data.vel = Point(200, 500);
     data.endPos = Point(0, 2000);
-    data.endVel = Point(-200, 200);
+    data.endVel = Point(-500, 200);
     data.nEnemies = nEnemies;
     data.n = nPairs * 2;
     data.t = tData;
@@ -54,38 +54,38 @@ int main(void)
     data.dV = dVData;
     data.dR = dRData;
     data.dA = dAData;
-    data.enemies[0] = AbsRigBody(Point(100, 500), 2 * ROBOT_R, Point(0, 0));
-    data.enemies[1] = AbsRigBody(Point(0, 1100), 2 * ROBOT_R, Point(0, 0));
-    data.enemies[2] = AbsRigBody(Point(-200, 750), 2 * ROBOT_R, Point(0, 0));
-    data.enemies[3] = AbsRigBody(Point(-1003, 1000), 2 * ROBOT_R, Point(0, 0));
-    data.enemies[4] = AbsRigBody(Point(-1004, 1000), 2 * ROBOT_R, Point(0, 0));
-    data.enemies[5] = AbsRigBody(Point(-1005, 1000), 2 * ROBOT_R, Point(0, 0));
+    data.enemies[0] = AbsRigBody(Point(200, 500), 2 * ROBOT_R, Point(0, 0));
+    data.enemies[1] = AbsRigBody(Point(-600, 300), 2 * ROBOT_R, Point(0, 0));
+    data.enemies[2] = AbsRigBody(Point(700, 300), 2 * ROBOT_R, Point(0, 0));
+    data.enemies[3] = AbsRigBody(Point(400, 400), 2 * ROBOT_R, Point(0, 0));
+    data.enemies[5] = AbsRigBody(Point(100, 1000), 2 * ROBOT_R, Point(0, 0));
+    data.enemies[4] = AbsRigBody(Point(-250, 300), 2 * ROBOT_R, Point(0, 0));
     // data.enemies[6] = AbsRigBody(Point(-1000, 1000), 2 * ROBOT_R, Point(0, 0));
 
     double resultCon[3], gradientCon[6 * nPairs], x[2 * nPairs], gradientMin[2 * nPairs], resultMin;
     // double be;
     // заполнение иксов рандомной датой для тестов
-    // 2.30035 0.1 1.68888 0.422166 1.3909 0.410584 1.22203 0.460373 1.58416 0.561293 -2.1624 0.1 -2.22767 0.1 -2.0797 0.1 -2.09383 0.1 -0.492633 0.1
-    x[0] = 2.30035;
-    x[1] = 0.1;
-    x[2] = 1.68888;
-    x[3] = 0.422166;
-    x[4] = 1.3909;
-    x[5] = 0.410584;
-    x[6] = 1.22203;
-    x[7] = 0.460373;
-    x[8] = 1.58416;
-    x[9] = 0.561293;
-    x[10] = -2.1624;
-    x[11] = 0.1;
-    x[12] = -2.22767;
-    x[13] = 0.1;
-    x[14] = -2.0797;
-    x[15] = 0.1;
-    x[16] = -2.09383;
-    x[17] = 0.1;
-    x[18] = -0.492633;
-    x[19] = 0.1;
+    // 1.25321 0.115614 2.64718 0.467286 0.632235 0 0.376115 0.85996 2.3814 0.756933 -1.60941 0.0886306 0.313105 0.0547674 -4.6205 0.0541166 -4.37416 0.258866 184.77 0.31216
+    x[0] = 1.25321;
+    x[1] = 0.115614;
+    x[2] = 2.64718;
+    x[3] = 0.467286;
+    x[4] = 0.632235;
+    x[5] = 0;
+    x[6] = 0.376115;
+    x[7] = 0.85996;
+    x[8] = 2.3814;
+    x[9] = 0.756933;
+    x[10] = -1.60941;
+    x[11] = 0.0886306;
+    x[12] = 0.313105;
+    x[13] = 0.0547674;
+    x[14] = -4.6205;
+    x[15] = 0.0541166;
+    x[16] = -4.37416;
+    x[17] = 0.258866;
+    x[18] = 184.77;
+    x[19] = 0.31216;
     void *voidData = static_cast<void *>(&data);
 
     // metrics::constraints(2, resultCon, 2 * nPairs, x, gradientCon, voidData);

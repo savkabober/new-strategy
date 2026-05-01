@@ -347,7 +347,7 @@ namespace metrics
         data->resultCon[0] = (data->r[n + 1] - data->endPos).x * MAX_ACC / (MAX_VEL * MAX_VEL);
         data->resultCon[1] = (data->r[n + 1] - data->endPos).y * MAX_ACC / (MAX_VEL * MAX_VEL);
         data->resultCon[2] = countIntersections(n, data, false) * (MAX_ACC / MAX_VEL);
-        data->resultMin = (countIntersections(n, data, true) * K_INTERSECT + t[n + 2]) * MAX_ACC / MAX_VEL;
+        data->resultMin = (countIntersections(n, data, true) * K_INTERSECT + t[n + 2] + (data->r[n + 1] - data->endPos).mag2() / (MAX_VEL * MAX_VEL)) * MAX_ACC / MAX_VEL;
         // cout << "res " << data->resultMin - t[n + 2] << endl;
         // cout << countIntersections(n, data, true) << endl;
         for (int i = 0; i < n / 2; i++)
@@ -381,6 +381,7 @@ namespace metrics
             // }
             data->gradCon[2 * n + 2 * i] = intGrad(n, data, i, false);
             data->gradMin[2 * i] += intGrad(n, data, i, true) * K_INTERSECT;
+            data->gradMin[2 * i] += (data->r[n + 1] - data->endPos) ^ data->dR[n + 1] * 2 / (MAX_VEL * MAX_VEL);
             // if (i == 3) {
             //     cout << "aft " << data->gradMin[2 * i] << endl;
             // }
@@ -420,6 +421,7 @@ namespace metrics
             data->gradMin[2 * i + 1] = data->dT[n + 2];
             data->gradCon[2 * n + 2 * i + 1] = intGrad(n, data, i, false);
             data->gradMin[2 * i + 1] += intGrad(n, data, i, true) * K_INTERSECT;
+            data->gradMin[2 * i + 1] += (data->r[n + 1] - data->endPos) ^ data->dR[n + 1] * 2 / (MAX_VEL * MAX_VEL);
             data->gradCon[2 * n + 2 * i + 1] *= (MAX_ACC / MAX_VEL);
             data->gradMin[2 * i + 1] *= (MAX_ACC / MAX_VEL);
             // cout << "hui" << endl;
@@ -441,12 +443,12 @@ namespace metrics
             // {
             //     data->x[i] += 1e-8;
             //     countSections(n, data);
-            //     grad[i] = ((countIntersections(n, data, true) * K_INTERSECT + data->t[n + 2]) * MAX_ACC / MAX_VEL - data->resultMin) / 1e-8;
+            //     grad[i] = ((countIntersections(n, data, true) * K_INTERSECT + data->t[n + 2] + (data->r[n + 1] - data->endPos).mag2() / (MAX_VEL * MAX_VEL)) * MAX_ACC / MAX_VEL - data->resultMin) / 1e-8;
             //     data->x[i] -= 1e-8;
             // }
             // for (int i = 0; i < int(n); i++)
             // {
-            //     if (abs((grad[i] - data->gradMin[i]) / grad[i]) > 0.1 && abs(grad[i]) > 0.02)
+            //     if (abs((grad[i] - data->gradMin[i]) / grad[i]) > 0.1 && abs(grad[i]) > 0.02 && abs(grad[i]) < 100)
             //     {
             //         cout << "PIZDA MIN " << grad[i] << " " << data->gradMin[i] << " " << i << endl;
             //         for (int j = 0; j < int(n); j++) {
@@ -478,9 +480,9 @@ namespace metrics
             // {
             //     data->x[i] += 1e-8;
             //     countSections(n, data);
-            //     grad[i] = ((data->r[n + 1] - data->endPos).x * MAX_ACC / (MAX_VEL * MAX_VEL) - result[0]) / 1e-8;
-            //     grad[n + i] = ((data->r[n + 1] - data->endPos).y * MAX_ACC / (MAX_VEL * MAX_VEL) - result[1]) / 1e-8;
-            //     data->x[i] -= 1e-8;
+            //     grad[i] = ((data->r[n + 1] - data->endPos).x * MAX_ACC / (MAX_VEL * MAX_VEL) - result[0]) / 1e-6;
+            //     grad[n + i] = ((data->r[n + 1] - data->endPos).y * MAX_ACC / (MAX_VEL * MAX_VEL) - result[1]) / 1e-6;
+            //     data->x[i] -= 1e-6;
             // }
             // for (int i = 0; i < 2 * int(n); i++)
             // {
@@ -499,13 +501,13 @@ namespace metrics
             }
         }
 
-        Timer myTimer;
-        MetricsData drawData = *data;
-        drawer::clear();
-        drawer::drawWay(drawData);
-        myTimer.reset();
-        drawer::display();
-        while (myTimer.time() < 1)
-            ;
+        // Timer myTimer;
+        // MetricsData drawData = *data;
+        // drawer::clear();
+        // drawer::drawWay(drawData);
+        // myTimer.reset();
+        // drawer::display();
+        // while (myTimer.time() < 1)
+        //     ;
     }
 }

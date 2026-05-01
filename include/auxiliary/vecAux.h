@@ -37,7 +37,7 @@ namespace vecAux
         double t1 = (d2 * d).z / determinant;
         double t2 = (d1 * d).z / determinant;
         bool valid = true;
-        if ((t1 < 0 && type1 != 'L' )|| (t1 > 1 && type1 == 'S'))
+        if ((t1 < 0 && type1 != 'L') || (t1 > 1 && type1 == 'S'))
         {
             valid = false;
         }
@@ -84,7 +84,6 @@ namespace vecAux
     int getTangentPoints(Point *prod, const Point &p, const Point &c, double r)
     {
         return circlesIntersection(prod, c, (p + c) / 2, r, (p - c).mag() / 2);
-        ;
     }
     // возвращает ближайшую к многоугольнику точку
     Point nearestPointOnPoly(const Point &p, const Point *poly, int n)
@@ -118,6 +117,30 @@ namespace vecAux
         }
         return true;
     }
+    // возвращает пересечения прямой и окружности
+    int lineCircleIntersect(Point *prod, const Point &p1, const Point &p2, const Point &p, double r, char type = 'S')
+    {
+        Point h = closestPointOnLine(p1, p2, p, 'L');
+        double dist = (h - p).mag();
+        if (r < dist)
+            return 0;
+        if (r == dist)
+        {
+            prod[0] = h;
+            return 1;
+        }
+        double d = math.sqrt(r * r - dist * dist);
+        Point vec = (p2 - p1).unity() * d;
+        int i = 0;
+        prod[i] = h + vec;
+        if ((((prod[i] - p1) ^ (p2 - p1)) >= 0 || type == 'L') && (((prod[i] - p2) ^ (p1 - p2)) >= 0 || type != 'S'))
+            i++;
+        prod[i] = h - vec;
+        if (((prod[i] - p1) ^ (p2 - p1)) >= 0 && ((prod[i] - p2) ^ (p1 - p2)) >= 0)
+            i++;
+        return i;
+    }
+
     // Получить время пересечения параболы и окружности
     inline int parabolaCircleIntersection(double *prod, double rad, const Point &a, const Point &v, const Point &r)
     {

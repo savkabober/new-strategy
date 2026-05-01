@@ -26,7 +26,7 @@ namespace solvers
     }
     void jac1(void (*f)(double *, double *, double *), double *Vm, double *jac, double *args, double *fx, int n, double d)
     {
-        static double ma, mb;
+        double ma, mb;
         ma = sqrt((args[0] - Vm[0]) * (args[0] - Vm[0]) + (args[1] - Vm[1]) * (args[1] - Vm[1]));
         mb = sqrt((args[2] - Vm[0]) * (args[2] - Vm[0]) + (args[3] - Vm[1]) * (args[3] - Vm[1]));
         fx[0] = 2 * args[6] * args[4] - (Vm[0] + args[0]) * ma - (Vm[0] + args[2]) * mb;
@@ -39,7 +39,7 @@ namespace solvers
 
     void jac2(void (*f)(double *, double *, double *), double *ang, double *jac, double *args, double *fx, int n, double d)
     {
-        static double ma, mb, dma, dmb, lhs[2], dl[2], Vm[2], ln, c2, s2; //, tc2, ts2, tVm[2], tma, tmb, tlhs[2];
+        double ma, mb, dma, dmb, lhs[2], dl[2], Vm[2], ln, c2, s2; //, tc2, ts2, tVm[2], tma, tmb, tlhs[2];
         c2 = cos(ang[0]);
         s2 = sin(ang[0]);
         Vm[0] = c2 * args[7];

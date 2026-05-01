@@ -1,97 +1,131 @@
 /*
-солвер для бенгбенга - начального приближения
+начальное приближение бенг бенгами
 */
 
 #pragma once
-#include "../auxiliary/numAux.h"
-#include "../auxiliary/Point.h"
-#include "../solvers.h"
-// #include "auxiliary/vecAux.h"
-using namespace solvers;
-void func1(double *Vm, double *args, double *fx)
-{
-    static double ma, mb;
-    ma = sqrt((args[0] - Vm[0]) * (args[0] - Vm[0]) + (args[1] - Vm[1]) * (args[1] - Vm[1]));
-    mb = sqrt((args[2] - Vm[0]) * (args[2] - Vm[0]) + (args[3] - Vm[1]) * (args[3] - Vm[1]));
-    fx[0] = 2 * args[6] * args[4] - (Vm[0] + args[0]) * ma - (Vm[0] + args[2]) * mb;
-    fx[1] = 2 * args[6] * args[5] - (Vm[1] + args[1]) * ma - (Vm[1] + args[3]) * mb;
-}
+#include "bangBang.h"
+#include "../metrics/metrics.h"
 
-void func2(double *ang, double *args, double *fx)
+void deleteRbt(int n, AbsRigBody *enemies, int i)
 {
-    static double Vm[2], lhs[2], ma, mb, ln;
-    Vm[0] = cos(ang[0]) * args[7];
-    Vm[1] = sin(ang[0]) * args[7];
-    ma = sqrt((args[0] - Vm[0]) * (args[0] - Vm[0]) + (args[1] - Vm[1]) * (args[1] - Vm[1]));
-    mb = sqrt((args[2] - Vm[0]) * (args[2] - Vm[0]) + (args[3] - Vm[1]) * (args[3] - Vm[1]));
-    lhs[0] = 2 * args[6] * args[4] - (Vm[0] + args[0]) * ma - (Vm[0] + args[2]) * mb;
-    lhs[1] = 2 * args[6] * args[5] - (Vm[1] + args[1]) * ma - (Vm[1] + args[3]) * mb;
-    ln = sqrt(lhs[0] * lhs[0] + lhs[1] * lhs[1]);
-    fx[0] = -(lhs[0] * Vm[0] + lhs[1] * Vm[1]) / ln / args[7] + 1;
-}
-
-Point bangbang(Point start, Point end, Point dr, double Amax, double Vmax, int nshort = 10, int nst = 10, int mult = 2, int barrier = 10000)
-{ // gang-bang
-    static double args[8], angle[1], rn, Vm[2], zero, imin, vmin, vnow[1];
-    static int i, n;
-    args[0] = start.x;
-    args[1] = start.y;
-    args[2] = end.x;
-    args[3] = end.y;
-    args[4] = dr.x;
-    args[5] = dr.y;
-    args[6] = Amax;
-    args[7] = Vmax;
-    rn = sqrt(args[4] * args[4] + args[5] * args[5]);
-    Vm[0] = args[4] / rn * Vmax;
-    Vm[1] = args[5] / rn * Vmax;
-    static Point res = {0, 0};
-    int g = 0;
-    zero = atan2(args[5], args[4]);
-    for (i = 0; g != 2 && i < nshort; i++)
+    for (int j = i, j < n - 1; j++)
     {
-        Vm[0] = cos(zero + 2 * M_PI * i / nshort) * Vmax;
-        Vm[1] = sin(zero + 2 * M_PI * i / nshort) * Vmax;
-        g = newton(jac1, func1, args, Vm, 2);
+        enemies[j] = enemies[j + 1];
     }
-    // if (g != 2)
-    // {
-    //     cout << "g " << g << ", " << start[0] << ", " << start[1] << ", " << end[0] << ", " << end[1] << ", " << args[4] << ", " << args[5] << endl;
-    // }
-    if (sqrt(Vm[0] * Vm[0] + Vm[1] * Vm[1]) > Vmax * 1.001)
+}
+
+bool initialApprox(MetricsData *data)
+{
+    // Сначала разобъем всех роботов на группы
+    AbsRigBody enemies2[data->nEnemies], groups[data->nEnemies];
+    Point prod[2], leftRbt[data->nEnemies], rightRbt[data->nEnemies];
+    for (int i = 0; i < data->nEnemies; i++)
     {
-        g = 0;
-        zero = atan2(Vm[1], Vm[0]);
-        angle[0] = zero;
-        g = newton(jac2, func2, args, angle, 1);
-        for (n = nst; g != 2 && n <= barrier; n *= mult)
+        enemies2[i] = data->enemies[i];
+        groups[i] = data->nEnemies[i];
+    }
+    int nGroups = 0, k = 0, idxGroups[data->nEnemies + 1], nProd;
+    bool isNew;
+    idxGroups[0] = 0;
+    for (int i = 0; i < data->nEnemies;)
+    {
+        groups[i] = enemies2[0];
+        deleteRbt(data->nEnemies - k, enemies2, 0);
+        k++;
+        for (; i < k; i++)
         {
-            vmin = 2;
-            for (i = 0; i < n; i++)
+            for (int j = 0; j < data->nEnemies - k; j++)
             {
-                if (n == nst || i % mult != 0)
+                if ((enemies2[j].getPos() - groups[i].getPos()).mag2() < numAux::square(enemies2[j].getRad() + groups[i].getRad()))
                 {
-                    angle[0] = zero + 2 * M_PI * i / n;
-                    func2(angle, args, vnow);
-                    if (vnow[0] < vmin)
-                    {
-                        vmin = vnow[0];
-                        imin = i;
-                    }
+                    groups[k] = enemies2[j];
+                    deleteRbt(data->nEnemies - k, enemies2, j);
+                    k++;
+                    j--;
                 }
             }
-            angle[0] = zero + 2 * M_PI * imin / n;
-            g = newton(jac2, func2, args, angle, 1);
         }
-        // if (g != 2)
-        // {
-        //     cout << "g2 " << g << ", " << start.x << ", " << start.y << ", " << end.x << ", " << end.y << ", " << r.x << ", " << r.y << endl;
-        // }
-
-        Vm[0] = cos(angle[0]) * Vmax;
-        Vm[1] = sin(angle[0]) * Vmax;
+        nGroups++;
+        idxGroups[nGroups] = i;
     }
-    res.x = Vm[0];
-    res.y = Vm[1];
-    return res;
+    bool isIntGr[nGroups], isIntRbt[data->nEnemies];
+    Point leftGr[nGroups], rightGr[nGroups];
+    // теперь смотрим на пересечения с прямой
+    for (int i = 0; i < nGroups; i++)
+    {
+        isIntGr[i] = false;
+        for (int j = idxGroups[i]; j < idxGroups[i + 1]; j++)
+        {
+            if (vecAux::lineCircleIntersect(prod, data->pos, data->endPos, groups[j].getPos(), groups[j].getRad()))
+                isIntRbt[j] = isIntGr[i] = true;
+            else
+                isIntRbt[j] = false;
+        }
+    }
+    // теперь определим максимальные углы у каждого робота
+    for (int i = 0; i < nGroups; i++)
+    {
+        if (!isIntGr[i])
+            break;
+        for (int j = idxGroups[i]; j < idxGroups[i + 1]; j++)
+        {
+            nProd = vecAux::getTangentPoints(prod, data->pos, groups[i].getPos(), groups[i].getRad());
+            if (nProd < 2)
+                break;
+            if (vecAux::getAngleBetweenPoints(prod[0], data->pos, groups[i].getPos()) > 0)
+            {
+                leftRbt[j] = prod[0];
+                rightRbt[j] = prod[1];
+            }
+            else
+            {
+                leftRbt[j] = prod[1];
+                rightRbt[j] = prod[0];
+            }
+        }
+    }
+    // теперь определяем максимальный угол в группе
+    for (int i = 0; i < nGroups; i++)
+    {
+        k = idxGroups[i];
+        do
+        {
+            isNew = false;
+            for (int j = idxGroups[i]; j < idxGroups[i + 1]; j++)
+            {
+                if (k == j)
+                    continue;
+                if (vecAux::getAngleBetweenPoints(leftRbt[j], data->pos, leftRbt[k]) > 0 && vecAux::getAngleBetweenPoints(leftRbt[k], data->pos, rightRbt[j]) > 0)
+                {
+                    isNew = true;
+                    k = j;
+                    break;
+                }
+            }
+        } while (k != idxGroups[i] && isNew);
+        if (k == idxGroups[i])
+            return false;
+        else
+            leftGr[i] = leftRbt[k];
+        k = idxGroups[i];
+        do
+        {
+            isNew = false;
+            for (int j = idxGroups[i]; j < idxGroups[i + 1]; j++)
+            {
+                if (k == j)
+                    continue;
+                if (vecAux::getAngleBetweenPoints(leftRbt[j], data->pos, rightRbt[k]) > 0 && vecAux::getAngleBetweenPoints(rightRbt[k], data->pos, rightRbt[j]) > 0)
+                {
+                    isNew = true;
+                    k = j;
+                    break;
+                }
+            }
+        } while (k != idxGroups[i] && isNew);
+        if (k == idxGroups[i])
+            return false;
+        else
+            rightGr[i] = rightRbt[k];
+    }
 }
