@@ -5,74 +5,56 @@
 #pragma once
 #include "bangBang.h"
 #include "../metrics/metrics.h"
+#include "../drawer.h"
 
 void deleteRbt(int n, AbsRigBody *enemies, int i)
 {
-    for (int j = i, j < n - 1; j++)
+    for (int j = i; j < n - 1; j++)
     {
         enemies[j] = enemies[j + 1];
     }
 }
 
-bool initialApprox(MetricsData *data)
+bool findTangents(Point start, Point end, AbsRigBody *groups, int nEnemies, int *idxGroups, int nGroups, Point &leftTg, Point &rightTg)
 {
     // Сначала разобъем всех роботов на группы
-    AbsRigBody enemies2[data->nEnemies], groups[data->nEnemies];
-    Point prod[2], leftRbt[data->nEnemies], rightRbt[data->nEnemies];
-    for (int i = 0; i < data->nEnemies; i++)
-    {
-        enemies2[i] = data->enemies[i];
-        groups[i] = data->nEnemies[i];
-    }
-    int nGroups = 0, k = 0, idxGroups[data->nEnemies + 1], nProd;
-    bool isNew;
-    idxGroups[0] = 0;
-    for (int i = 0; i < data->nEnemies;)
-    {
-        groups[i] = enemies2[0];
-        deleteRbt(data->nEnemies - k, enemies2, 0);
-        k++;
-        for (; i < k; i++)
-        {
-            for (int j = 0; j < data->nEnemies - k; j++)
-            {
-                if ((enemies2[j].getPos() - groups[i].getPos()).mag2() < numAux::square(enemies2[j].getRad() + groups[i].getRad()))
-                {
-                    groups[k] = enemies2[j];
-                    deleteRbt(data->nEnemies - k, enemies2, j);
-                    k++;
-                    j--;
-                }
-            }
-        }
-        nGroups++;
-        idxGroups[nGroups] = i;
-    }
-    bool isIntGr[nGroups], isIntRbt[data->nEnemies];
+    Point prod[2], leftRbt[nEnemies], rightRbt[nEnemies];
+    double angle1, angle2;
+    int i, k;
+    bool isInt[nGroups], isNew, flag;
     Point leftGr[nGroups], rightGr[nGroups];
     // теперь смотрим на пересечения с прямой
-    for (int i = 0; i < nGroups; i++)
+    for (i = 0; i < nGroups; i++)
     {
-        isIntGr[i] = false;
+        isInt[i] = false;
         for (int j = idxGroups[i]; j < idxGroups[i + 1]; j++)
         {
-            if (vecAux::lineCircleIntersect(prod, data->pos, data->endPos, groups[j].getPos(), groups[j].getRad()))
-                isIntRbt[j] = isIntGr[i] = true;
-            else
-                isIntRbt[j] = false;
+            // cout << vecAux::lineCircleIntersect(prod, data->pos, data->endPos, groups[j].getPos(), groups[j].getRad()) << endl;
+            if (vecAux::lineCircleIntersect(prod, start, end, groups[j].getPos(), groups[j].getRad()))
+                isInt[i] = true;
         }
     }
+    flag = false;
+    for (i = 0; i < nGroups; i++) {
+        if (isInt[i])
+            flag = true;
+    }
+    if (!flag)
+        return false;
     // теперь определим максимальные углы у каждого робота
-    for (int i = 0; i < nGroups; i++)
+    for (i = 0; i < nGroups; i++)
     {
-        if (!isIntGr[i])
-            break;
+        if (!isInt[i])
+            continue;
         for (int j = idxGroups[i]; j < idxGroups[i + 1]; j++)
         {
-            nProd = vecAux::getTangentPoints(prod, data->pos, groups[i].getPos(), groups[i].getRad());
-            if (nProd < 2)
+            if ((groups[j].getPos() - start).mag() < groups[j].getRad() + SAFE_DIST)
+            {
+                isInt[i] = false;
                 break;
-            if (vecAux::getAngleBetweenPoints(prod[0], data->pos, groups[i].getPos()) > 0)
+            }
+            vecAux::getTangentPoints(prod, start, groups[j].getPos(), groups[j].getRad());
+            if (vecAux::getAngleBetweenPoints(prod[0], start, groups[j].getPos()) > 0)
             {
                 leftRbt[j] = prod[0];
                 rightRbt[j] = prod[1];
@@ -85,8 +67,10 @@ bool initialApprox(MetricsData *data)
         }
     }
     // теперь определяем максимальный угол в группе
-    for (int i = 0; i < nGroups; i++)
+    for (i = 0; i < nGroups; i++)
     {
+        if (!isInt[i])
+            continue;
         k = idxGroups[i];
         do
         {
@@ -95,7 +79,7 @@ bool initialApprox(MetricsData *data)
             {
                 if (k == j)
                     continue;
-                if (vecAux::getAngleBetweenPoints(leftRbt[j], data->pos, leftRbt[k]) > 0 && vecAux::getAngleBetweenPoints(leftRbt[k], data->pos, rightRbt[j]) > 0)
+                if (vecAux::getAngleBetweenPoints(leftRbt[j], start, leftRbt[k]) > 0 && vecAux::getAngleBetweenPoints(leftRbt[k], start, rightRbt[j]) > 0)
                 {
                     isNew = true;
                     k = j;
@@ -103,10 +87,12 @@ bool initialApprox(MetricsData *data)
                 }
             }
         } while (k != idxGroups[i] && isNew);
-        if (k == idxGroups[i])
-            return false;
-        else
-            leftGr[i] = leftRbt[k];
+        if (k == idxGroups[i] && isNew)
+        {
+            isInt[i] = false;
+            continue;
+        }
+        leftGr[i] = leftRbt[k];
         k = idxGroups[i];
         do
         {
@@ -115,7 +101,7 @@ bool initialApprox(MetricsData *data)
             {
                 if (k == j)
                     continue;
-                if (vecAux::getAngleBetweenPoints(leftRbt[j], data->pos, rightRbt[k]) > 0 && vecAux::getAngleBetweenPoints(rightRbt[k], data->pos, rightRbt[j]) > 0)
+                if (vecAux::getAngleBetweenPoints(leftRbt[j], start, rightRbt[k]) > 0 && vecAux::getAngleBetweenPoints(rightRbt[k], start, rightRbt[j]) > 0)
                 {
                     isNew = true;
                     k = j;
@@ -123,9 +109,94 @@ bool initialApprox(MetricsData *data)
                 }
             }
         } while (k != idxGroups[i] && isNew);
-        if (k == idxGroups[i])
-            return false;
-        else
-            rightGr[i] = rightRbt[k];
+        if (k == idxGroups[i] && isNew)
+        {
+            isInt[i] = false;
+            continue;
+        }
+        rightGr[i] = rightRbt[k];
     }
+    // а теперь вернем две лучшие касательные с обеих сторон
+    for (i = 0; i < nGroups; i++) {
+        if (isInt[i]) {
+            leftTg = leftGr[i];
+            rightTg = rightGr[i];
+        }
+    }
+    for (i = 0; i < nGroups; i++) {
+        if (isInt[i]) {
+            leftTg = leftGr[i];
+            rightTg = rightGr[i];
+            i++;
+            break;
+        }
+    }
+    for (; i < nGroups; i++) {
+        if (isInt[i]) {
+            angle1 = vecAux::getAngleBetweenPoints(leftGr[i], start, end);
+            if (angle1 < 0) {
+                angle1 += 2 * M_PI;
+            }
+            angle2 = vecAux::getAngleBetweenPoints(leftTg, start, end);
+            if (angle2 < 0) {
+                angle2 += 2 * M_PI;
+            }
+            if (angle1 > angle2) {
+                leftTg = leftGr[i];
+            }
+            angle1 = vecAux::getAngleBetweenPoints(end, start, rightGr[i]);
+            if (angle1 < 0) {
+                angle1 += 2 * M_PI;
+            }
+            angle2 = vecAux::getAngleBetweenPoints(end, start, rightTg);
+            if (angle2 < 0) {
+                angle2 += 2 * M_PI;
+            }
+            if (angle1 > angle2) {
+                rightTg = rightGr[i];
+            }
+        }
+    }
+    return true;
+}
+
+int findGroups(AbsRigBody *groups, int *idxGroups, AbsRigBody *enemies, int nEnemies) {
+    // Сначала разобъем всех роботов на группы
+    AbsRigBody enemies2[nEnemies];
+    for (int i = 0; i < nEnemies; i++)
+    {
+        enemies2[i] = enemies[i];
+        groups[i] = enemies[i];
+    }
+    int nGroups = 0, k = 0;
+    idxGroups[0] = 0;
+    for (int i = 0; i < nEnemies;)
+    {
+        groups[i] = enemies2[0];
+        deleteRbt(nEnemies - k, enemies2, 0);
+        k++;
+        for (; i < k; i++)
+        {
+            for (int j = 0; j < nEnemies - k; j++)
+            {
+                if ((enemies2[j].getPos() - groups[i].getPos()).mag2() < numAux::square(enemies2[j].getRad() + groups[i].getRad()))
+                {
+                    groups[k] = enemies2[j];
+                    deleteRbt(nEnemies - k, enemies2, j);
+                    k++;
+                    j--;
+                }
+            }
+        }
+        nGroups++;
+        idxGroups[nGroups] = i;
+    }
+    int nGroups;
+}
+
+void initialApprox(Point start, Point end, AbsRigBody *enemies, int nEnemies)
+{
+    int idxGroups[nEnemies + 1], nGroups;
+    AbsRigBody groups[nEnemies];
+    nGroups = findGroups(groups, enemies, nEnemies);
 }

@@ -13,17 +13,21 @@ namespace vecAux
     // возвращает ближайшую точку к прямой. Типы: 'S' - сегмент, 'R' - луч (из 1 точки во вторую), 'L' - прямая
     Point closestPointOnLine(const Point &p1, const Point &p2, const Point &p, char type = 'S')
     {
-        double prj = (p2 - p1) ^ (p - p1);
+        double len = (p2 - p1).mag();
+        double prj = (p2 - p1) ^ (p - p1) / len;
         if (prj < 0 && type != 'L')
         {
             return p1;
         }
-        double len = (p2 - p1).mag();
         if (prj > len && type == 'S')
         {
             return p2;
         }
-        return (p1 - p2) / len * prj + p1;
+        return (p2 - p1) / len * prj + p1;
+    }
+    Point pointOnLine(const Point &p1, const Point &p2, double l)
+    {
+        return p1 + (p2 - p1).unity() * l;
     }
     // возвращает пересечение 2 прямых если оно существует. Типы: 'S' - сегмент, 'R' - луч (из 1 точки во вторую), 'L' - прямая
     bool getLineIntersection(Point &prod, const Point &p1, const Point &p2, const Point &p3, const Point &p4, char type1 = 'S', char type2 = 'S')
@@ -120,7 +124,9 @@ namespace vecAux
     // возвращает пересечения прямой и окружности
     int lineCircleIntersect(Point *prod, const Point &p1, const Point &p2, const Point &p, double r, char type = 'S')
     {
+        // cout << p1 << " " << p2 << " " << p << endl;
         Point h = closestPointOnLine(p1, p2, p, 'L');
+        // cout << h << endl;
         double dist = (h - p).mag();
         if (r < dist)
             return 0;
@@ -129,14 +135,14 @@ namespace vecAux
             prod[0] = h;
             return 1;
         }
-        double d = math.sqrt(r * r - dist * dist);
+        double d = sqrt(r * r - dist * dist);
         Point vec = (p2 - p1).unity() * d;
         int i = 0;
         prod[i] = h + vec;
         if ((((prod[i] - p1) ^ (p2 - p1)) >= 0 || type == 'L') && (((prod[i] - p2) ^ (p1 - p2)) >= 0 || type != 'S'))
             i++;
         prod[i] = h - vec;
-        if (((prod[i] - p1) ^ (p2 - p1)) >= 0 && ((prod[i] - p2) ^ (p1 - p2)) >= 0)
+        if ((((prod[i] - p1) ^ (p2 - p1)) >= 0 || type == 'L') && (((prod[i] - p2) ^ (p1 - p2)) >= 0 || type != 'S'))
             i++;
         return i;
     }

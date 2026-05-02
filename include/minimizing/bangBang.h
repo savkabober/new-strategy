@@ -70,6 +70,7 @@ namespace bangBang
             for (n = nst; g != 2 && n <= barrier; n *= mult)
             {
                 vmin = 2;
+                imin = 0;
                 for (i = 0; i < n; i++)
                 {
                     if (n == nst || i % mult != 0)

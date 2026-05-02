@@ -6,10 +6,11 @@
 //robot movement
 #define MAX_VEL 1000
 #define MAX_ACC 2000
+#define SAFE_DIST 20
 //idk
 #define MAX_ROBOT_COUNT 16
 #define MAX_SOLVER_DEGREE 10  
-#define K_INTERSECT 1000
+#define K_INTERSECT 10
 //geometry
 #define ROBOT_R 100.0
 #define BALL_R 40.0

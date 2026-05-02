@@ -100,7 +100,7 @@ namespace metrics
             vel = data->enemies[i].getVel();
             if (doSafe)
             {
-                if ((pos - r[0]).mag() < rad + data->safeDist)
+                if ((pos - r[0]).mag() < rad + SAFE_DIST)
                 {
                     isIn = true;
                     intersection = 0;
@@ -122,7 +122,7 @@ namespace metrics
             {
                 if (j % 2 && t[j] < 0)
                     continue;
-                nProd = vecAux::parabolaCircleIntersection(prod, rad + data->safeDist * (doSafe), a[j], v[j] - vel, r[2 * j] - pos);
+                nProd = vecAux::parabolaCircleIntersection(prod, rad + SAFE_DIST * (doSafe), a[j], v[j] - vel, r[2 * j] - pos);
                 for (int k = 0; k < nProd; k++)
                 {
                     if (prod[k] < 0)
@@ -142,7 +142,7 @@ namespace metrics
                 nowIdx = 0;
                 if (data->isLong[j])
                 {
-                    nProd = vecAux::lineCircleIntersection(prod, rad + data->safeDist * (doSafe), v[j + 1] - vel, r[2 * j + 1] - pos);
+                    nProd = vecAux::lineCircleIntersection(prod, rad + SAFE_DIST * (doSafe), v[j + 1] - vel, r[2 * j + 1] - pos);
                     for (int k = 0; k < nProd; k++)
                     {
                         if (prod[k] < 0)
@@ -181,8 +181,8 @@ namespace metrics
     // Функция просчета цепочки
     void chainGrad(int n, int i, bool shortFl, MetricsData *data)
     {
-        Point *dV = data->dV, *dR = data->dR, *a = data->a, *v = data->v, *r = data->r, aNormal, deltaR, *dA = data->dA;
-        double *t = data->t, *tMax = data->tMax, deltaT, dP, dTNow, *dT = data->dT;
+        Point *dV = data->dV, *dR = data->dR, *a = data->a, *v = data->v, aNormal, deltaR, *dA = data->dA;
+        double *t = data->t, *tMax = data->tMax, dTNow, *dT = data->dT;
         bool shortFlag = shortFl;
         // В данный момент просчитаны все участки езды. Начнем брать производную по времени.
         for (int j = i + 1; j < n / 2 && !shortFlag; j++)
@@ -347,7 +347,7 @@ namespace metrics
         data->resultCon[0] = (data->r[n + 1] - data->endPos).x * MAX_ACC / (MAX_VEL * MAX_VEL);
         data->resultCon[1] = (data->r[n + 1] - data->endPos).y * MAX_ACC / (MAX_VEL * MAX_VEL);
         data->resultCon[2] = countIntersections(n, data, false) * (MAX_ACC / MAX_VEL);
-        data->resultMin = (countIntersections(n, data, true) * K_INTERSECT + t[n + 2] + (data->r[n + 1] - data->endPos).mag2() / (MAX_VEL * MAX_VEL)) * MAX_ACC / MAX_VEL;
+        data->resultMin = (countIntersections(n, data, true) * K_INTERSECT + t[n + 2]/* + (data->r[n + 1] - data->endPos).mag2() / (MAX_VEL * MAX_VEL)*/) * MAX_ACC / MAX_VEL;
         // cout << "res " << data->resultMin - t[n + 2] << endl;
         // cout << countIntersections(n, data, true) << endl;
         for (int i = 0; i < n / 2; i++)
@@ -381,7 +381,7 @@ namespace metrics
             // }
             data->gradCon[2 * n + 2 * i] = intGrad(n, data, i, false);
             data->gradMin[2 * i] += intGrad(n, data, i, true) * K_INTERSECT;
-            data->gradMin[2 * i] += (data->r[n + 1] - data->endPos) ^ data->dR[n + 1] * 2 / (MAX_VEL * MAX_VEL);
+            // data->gradMin[2 * i] += (data->r[n + 1] - data->endPos) ^ data->dR[n + 1] * 2 / (MAX_VEL * MAX_VEL);
             // if (i == 3) {
             //     cout << "aft " << data->gradMin[2 * i] << endl;
             // }
@@ -421,7 +421,7 @@ namespace metrics
             data->gradMin[2 * i + 1] = data->dT[n + 2];
             data->gradCon[2 * n + 2 * i + 1] = intGrad(n, data, i, false);
             data->gradMin[2 * i + 1] += intGrad(n, data, i, true) * K_INTERSECT;
-            data->gradMin[2 * i + 1] += (data->r[n + 1] - data->endPos) ^ data->dR[n + 1] * 2 / (MAX_VEL * MAX_VEL);
+            // data->gradMin[2 * i + 1] += (data->r[n + 1] - data->endPos) ^ data->dR[n + 1] * 2 / (MAX_VEL * MAX_VEL);
             data->gradCon[2 * n + 2 * i + 1] *= (MAX_ACC / MAX_VEL);
             data->gradMin[2 * i + 1] *= (MAX_ACC / MAX_VEL);
             // cout << "hui" << endl;
@@ -441,20 +441,23 @@ namespace metrics
         {
             // for (int i = 0; i < int(n); i++)
             // {
-            //     data->x[i] += 1e-8;
+            //     data->x[i] += 1e-6;
             //     countSections(n, data);
-            //     grad[i] = ((countIntersections(n, data, true) * K_INTERSECT + data->t[n + 2] + (data->r[n + 1] - data->endPos).mag2() / (MAX_VEL * MAX_VEL)) * MAX_ACC / MAX_VEL - data->resultMin) / 1e-8;
-            //     data->x[i] -= 1e-8;
+            //     grad[i] = ((countIntersections(n, data, true) * K_INTERSECT + data->t[n + 2]/* + (data->r[n + 1] - data->endPos).mag2() / (MAX_VEL * MAX_VEL)*/) * MAX_ACC / MAX_VEL - data->resultMin) / 1e-6;
+            //     data->x[i] -= 1e-6;
             // }
             // for (int i = 0; i < int(n); i++)
             // {
-            //     if (abs((grad[i] - data->gradMin[i]) / grad[i]) > 0.1 && abs(grad[i]) > 0.02 && abs(grad[i]) < 100)
+            //     if (abs((grad[i] - data->gradMin[i]) / grad[i]) > 0.1) // && abs(grad[i]) > 0.02)
             //     {
             //         cout << "PIZDA MIN " << grad[i] << " " << data->gradMin[i] << " " << i << endl;
             //         for (int j = 0; j < int(n); j++) {
             //             cout << x[j] << " ";
             //         }
             //         cout << endl;
+            //     }
+            //     else {
+            //         cout << "ok" << endl;
             //     }
             // }
             for (int i = 0; i < int(n); i++)
@@ -507,7 +510,7 @@ namespace metrics
         // drawer::drawWay(drawData);
         // myTimer.reset();
         // drawer::display();
-        // while (myTimer.time() < 1)
+        // while (myTimer.time() < 0.01)
         //     ;
     }
 }

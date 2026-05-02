@@ -5,12 +5,12 @@
 #pragma once
 #include <nlopt.h>
 #include "../metrics/metrics.h"
-#include "initialApprox.h"
+#include "bangBang.h"
 
 void minimize(MetricsData data)
 {
     nlopt_opt opt = nlopt_create(NLOPT_LD_SLSQP, data.n); // создаем объект оптимайзера
-    double lower_bounds[data.n];                          // нижние границы для переменных - ноль для изменения по времени и минус бесконечность для ускорения
+    double lower_bounds[data.n], x[data.n];                          // нижние границы для переменных - ноль для изменения по времени и минус бесконечность для ускорения
     for (int i = 0; i < data.n; i++)
     {
         if (i % 2)
@@ -28,7 +28,7 @@ void minimize(MetricsData data)
     // nlopt_set_check_gradients(opt, 1);          // 1 = включить
     // nlopt_set_check_gradient_step(opt, 1e-5);   // шаг для численного сравнения
 
-    double resultCon[3], gradientCon[3 * data.n], x[data.n], gradientMin[data.n], resultMin;
+    // double resultCon[3], gradientCon[3 * data.n], x[data.n], gradientMin[data.n], resultMin;
     Point Vm = bangBang::bangBang(data.vel, data.endVel, data.endPos - data.pos, MAX_ACC, MAX_VEL);
     // std::cout<<Vm.x<<" "<<Vm.y<<"\n";
     // double acc_ang = (Vm - data.vel).arg();
@@ -38,7 +38,6 @@ void minimize(MetricsData data)
     double const_time = ((data.endPos - data.pos) - (data.vel + Vm) / 2 * acc_time - (data.endVel + Vm) / 2 * dec_time).mag() / Vm.mag();
     if (const_time < EPSILON)
         const_time = 0;
-
     for (int i = 0; i < data.n / 4; i++)
     {
         if (const_time > 0)
@@ -62,6 +61,8 @@ void minimize(MetricsData data)
         x[i * 2 + 1] = dec_time / (data.n / 2 - data.n / 4);
         // cout << Vm + (data.endVel - Vm).unity() * l << " " << x[2 * i + 1] << endl;
     }
+    // x[4] ц= -M_PI / 2;
+    // x[5] = 1;
     // x[data.n - 2] = 0;
     // x[data.n - 1] = 0.5;
     // cout << data.vel << " " << Vm << " " << data.endVel << endl;
