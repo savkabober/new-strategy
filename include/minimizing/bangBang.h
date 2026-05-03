@@ -7,7 +7,6 @@
 #include "../auxiliary/Point.h"
 #include "../solvers.h"
 
-// #include "auxiliary/vecAux.h"
 using namespace solvers;
 namespace bangBang
 {
@@ -57,10 +56,6 @@ namespace bangBang
             Vm[1] = sin(zero + 2 * M_PI * i / nshort) * Vmax;
             g = newton(jac1, func1, args, Vm, 2);
         }
-        // if (g != 2)
-        // {
-        //     cout << "g " << g << ", " << start[0] << ", " << start[1] << ", " << end[0] << ", " << end[1] << ", " << args[4] << ", " << args[5] << endl;
-        // }
         if (sqrt(Vm[0] * Vm[0] + Vm[1] * Vm[1]) > Vmax * 1.001)
         {
             g = 0;
@@ -87,10 +82,6 @@ namespace bangBang
                 angle[0] = zero + 2 * M_PI * imin / n;
                 g = newton(jac2, func2, args, angle, 1);
             }
-            // if (g != 2)
-            // {
-            //     cout << "g2 " << g << ", " << start.x << ", " << start.y << ", " << end.x << ", " << end.y << ", " << r.x << ", " << r.y << endl;
-            // }
 
             Vm[0] = cos(angle[0]) * Vmax;
             Vm[1] = sin(angle[0]) * Vmax;

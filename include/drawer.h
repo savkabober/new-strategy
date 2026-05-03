@@ -80,7 +80,6 @@ namespace drawer
             time = data.x[i * 2 + 1];
             pos += vel * time + acc * time * time / 2;
             vel += acc * time;
-            // std::cout<<(vel.mag()<MAX_VEL)<<"\n";
             drawer::drawCircle(pos, 50, sf::Color(128, 0, 255));
         }
     }

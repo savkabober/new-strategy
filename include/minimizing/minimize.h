@@ -35,22 +35,10 @@ void minimize(Point start, Point end, Point vStart, Point vEnd, AbsRigBody *enem
     double tolerances[3] = {1e-4, 1e-4};
     nlopt_add_equality_mconstraint(opt, 2, metrics::constraints, voidData, tolerances); // задаем функцию ограничений
     nlopt_set_xtol_rel(opt, 1e-6);
-    nlopt_set_ftol_rel(opt, 1e-6); // abs?? x?? - задаем критерий остановки - относительное изменение метрики меньше 1е-4 (мб сделать для иксов? или абсолютное?)
+    nlopt_set_ftol_rel(opt, 1e-6);
 
     initialApprox(start, end, vStart, vEnd, enemies, nEnemies, x, data.n);
-    // x[0] = M_PI / 2;
-    // x[1] = 0.5;
-
-    // for (int i = 0; i < data.n; i++) {
-    //     data.x[i] = x[i];
-    //     cout << x[i] << endl;
-    // }
-
-    // drawer::drawWay(data);
-    // drawer::display();
     double minf;
-    // cout << "lol" << endl;
-    // cout << "lalala" << endl;
     int result = nlopt_optimize(opt, x, &minf);
     std::cout << result << " " << minf << " " << data.resultCon[0] << " " << data.resultCon[1] << " " << data.resultCon[2] << "\n";
     nlopt_destroy(opt);

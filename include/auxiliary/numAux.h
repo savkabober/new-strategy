@@ -139,7 +139,6 @@ namespace numAux
             }
             return 0;
         }
-        // cout << 1 << " " << 5 * A / 2 << " " << 2 * A * A - C << " " << A * A * A / 2 - A * C / 2 - B * B / 8 << endl;
         double y = prod[solveEq(prod, 1, 5 * A / 2, 2 * A * A - C, A * A * A / 2 - A * C / 2 - B * B / 8) - 1];
         s1 = sqrt(A + 2 * y);
         s2 = -3 * A - 2 * y + 2 * abs(B) / s1;

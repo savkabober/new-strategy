@@ -124,9 +124,7 @@ namespace vecAux
     // возвращает пересечения прямой и окружности
     int lineCircleIntersect(Point *prod, const Point &p1, const Point &p2, const Point &p, double r, char type = 'S')
     {
-        // cout << p1 << " " << p2 << " " << p << endl;
         Point h = closestPointOnLine(p1, p2, p, 'L');
-        // cout << h << endl;
         double dist = (h - p).mag();
         if (r < dist)
             return 0;

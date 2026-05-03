@@ -30,7 +30,6 @@ bool findTangents(Point start, Point end, AbsRigBody *groups, int nEnemies, int 
         isInt[i] = false;
         for (int j = idxGroups[i]; j < idxGroups[i + 1]; j++)
         {
-            // cout << vecAux::lineCircleIntersect(prod, data->pos, data->endPos, groups[j].getPos(), groups[j].getRad()) << endl;
             if (vecAux::lineCircleIntersect(prod, start, end, groups[j].getPos(), groups[j].getRad()))
                 isInt[i] = true;
         }
@@ -283,15 +282,12 @@ int findWay(Point start, Point end, AbsRigBody *enemies, int nEnemies, Point *wa
             }
         }
     }
-    // cout << "lalala " << lengths[1] << endl;
     int nowPoint = 1;
     for (int i = lengths[1]; i >= 0; i--)
     {
-        // cout << nowPoint << " " << parents[nowPoint] << endl;
         way[i] = points[nowPoint];
         nowPoint = parents[nowPoint];
     }
-    // cout << "bebebe" << endl;
     return lengths[1] + 1;
 }
 
@@ -312,11 +308,9 @@ void initialApprox(Point start, Point end, Point vStart, Point vEnd, AbsRigBody 
     for (int i = 0; i < length - 1; i++)
     {
         Point Vm = bangBang::bangBang(vels[i], vels[i + 1], way[i + 1] - way[i], MAX_ACC, MAX_VEL);
-        // cout << vels[i] << " " << vels[i + 1] << " " << way[i + 1] << " " << way[i] << endl;
         accTime = (vels[i] - Vm).mag() / MAX_ACC;
         decTime = (vels[i + 1] - Vm).mag() / MAX_ACC;
         constTime = ((way[i + 1] - way[i]) - (vels[i] + Vm) / 2 * accTime - (vels[i + 1] + Vm) / 2 * decTime).mag() / MAX_VEL;
-        // cout << accTime << " " << constTime << " " << accTime << " " << MAX_VEL - Vm.mag() << endl;
         if (MAX_VEL - Vm.mag() > EPSILON)
         {
             cA = cos(vecAux::getAngleBetweenPoints(vels[i], Point(0, 0), (Vm - vels[i])));
@@ -335,7 +329,6 @@ void initialApprox(Point start, Point end, Point vStart, Point vEnd, AbsRigBody 
         {
             x[2 * k] = angle;
             x[2 * k + 1] = (accTime + constTime) / plus;
-            // cout << x[2 * k + 1] << " " << plus << endl;
         }
         j += plus;
         cA = cos(vecAux::getAngleBetweenPoints(Vm, Point(0, 0), (vels[i + 1] - Vm)));
