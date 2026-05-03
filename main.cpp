@@ -12,25 +12,9 @@
 using namespace std;
 int main(void)
 {
+    int nEnemies = 6;
+    AbsRigBody enemies[nEnemies];
     /*
-    Дата выглядит так
-    Point pos, vel, endPos, endVel;
-    int nEnemies, n;
-    AbsRigBody enemies[MAX_ROBOT_COUNT];
-    double *t, *x, *tMax, *gradCon, *gradMin, *tIntCon, *tIntMin, *resultCon, resultMin, *dT;
-    bool *isLong;
-    Point *a, *v, *r, *vMax, *dV, *dR, *dA;
-    */
-    int nPairs = 6, nEnemies = 6;
-    // Создание переменных для даты
-    bool isLongData[nPairs + 1];
-    double tData[2 * nPairs + 4], xData[2 * nPairs], tMaxData[nPairs], gradConData[6 * nPairs], gradMinData[2 * nPairs];
-    double tIntConData[6 * (nPairs + 1) * nEnemies], tIntMinData[6 * (nPairs + 1) * nEnemies], resultConData[3], dTData[2 * nPairs + 4];
-    Point rData[2 * nPairs + 4], vData[nPairs + 2], aData[nPairs + 1], vMaxData[nPairs];
-    Point dVData[nPairs + 2], dRData[2 * nPairs + 4], dAData[nPairs + 1];
-    // Заполнение даты, чтобы в ней все было
-    // Если с кодом творится пиздец - смотри сюда!!! (все может крашится если ссылается на чето пустое)
-    // В будущем стоит сделать все массивы с максимальным значением n. да, потратится сколько то памяти, но зато нет ебли с передачей
     MetricsData data;
     data.pos = Point(0, 0);
     data.vel = Point(200, 500);
@@ -55,14 +39,6 @@ int main(void)
     data.dV = dVData;
     data.dR = dRData;
     data.dA = dAData;
-    data.enemies[0] = AbsRigBody(Point(200, 500), 2 * ROBOT_R, Point(0, 0));
-    data.enemies[1] = AbsRigBody(Point(-600, 300), 2 * ROBOT_R, Point(0, 0));
-    data.enemies[2] = AbsRigBody(Point(700, 300), 2 * ROBOT_R, Point(0, 0));
-    data.enemies[3] = AbsRigBody(Point(400, 400), 2 * ROBOT_R, Point(0, 0));
-    data.enemies[5] = AbsRigBody(Point(0, 500), 2 * ROBOT_R, Point(0, 0));
-    data.enemies[4] = AbsRigBody(Point(-250, 300), 2 * ROBOT_R, Point(0, 0));
-    // data.enemies[6] = AbsRigBody(Point(-1000, 1000), 2 * ROBOT_R, Point(0, 0));
-
     double resultCon[3], gradientCon[6 * nPairs], x[2 * nPairs], gradientMin[2 * nPairs], resultMin;
     // double be;
     // заполнение иксов рандомной датой для тестов
@@ -88,8 +64,13 @@ int main(void)
     // x[18] = 184.77;
     // x[19] = 0.31216;
     void *voidData = static_cast<void *>(&data);
-
-    // metrics::constraints(2, resultCon, 2 * nPairs, x, gradientCon, voidData);
+    */
+    enemies[0] = AbsRigBody(Point(150, -500), 2 * ROBOT_R, Point(0, 0));
+    enemies[1] = AbsRigBody(Point(-600, 400), 2 * ROBOT_R, Point(0, 0));
+    enemies[2] = AbsRigBody(Point(700, 300), 2 * ROBOT_R, Point(0, 0));
+    enemies[3] = AbsRigBody(Point(401, 400), 4 * ROBOT_R, Point(0, 0));
+    enemies[4] = AbsRigBody(Point(0, 1000), 2 * ROBOT_R, Point(0, 0));
+    enemies[5] = AbsRigBody(Point(-250, 1300), 2 * ROBOT_R, Point(0, 0));
 
     drawer::setFramerateLimit(60);
 
@@ -99,11 +80,18 @@ int main(void)
 
     for (int i = 0; i < nEnemies; i++)
     {
-        drawer::drawCircle(data.enemies[i].getPos(), 2 * ROBOT_R + 20, sf::Color(255, 0, 0));
-        drawer::drawCircle(data.enemies[i].getPos(), 2 * ROBOT_R, sf::Color(128, 255, 128));
+        drawer::drawCircle(enemies[i].getPos(), enemies[i].getRad() + 20, sf::Color(255, 0, 0));
+        drawer::drawCircle(enemies[i].getPos(), enemies[i].getRad(), sf::Color(128, 255, 128));
     }
-    findWay(&data);
-    // minimize(data);
+    // initialApprox(data.pos, data.endPos, data.vel, data.endVel, data.enemies, data.nEnemies, x, data.n);
+    // for (int i = 0; i < data.n; i++) {
+    //     cout << x[i] << endl;
+    // }
+    int nRepeat = 1;
+    for (int i = 0; i < nRepeat; i++) {
+        minimize(Point(0, 0), Point(0, 2000), Point(200, 500), Point(-500, 200), enemies, nEnemies);
+    }
+    
 
     // metrics::constraints(2, resultCon, 2 * nPairs, x, gradientCon, voidData);
     // resultMin = metrics::minimizing(2 * nPairs, x, gradientMin, voidData);
@@ -132,13 +120,13 @@ int main(void)
     //     }
     // }
 
-    drawer::drawWay(data);
-    drawer::drawVel(data.endPos, data.endVel);
+    // drawer::drawWay(data);
+    // drawer::drawVel(data.endPos, data.endVel);
     // drawer::drawLine(Point(0, 0), Point(be));
     // drawer::drawLine(Point(0, 0), data.dR[2 * nPairs + 1]);
     drawer::display();
     long double deltaT = myTimer.time();
-    cout << "time in ms: " << deltaT * 1000 << endl;
+    cout << "time in ms: " << deltaT * 1000 / nRepeat << endl;
     while (!drawer::updateEvent())
     {
     }

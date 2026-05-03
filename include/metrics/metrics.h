@@ -106,7 +106,6 @@ namespace metrics
                     intersection = 0;
                     tInt[6 * (n / 2 + 1) * i] = 0;
                     nowIdx++;
-                    // cout << "huiDFSEJNIEGOWRGOWRGVERNV" << endl;
                 }
                 else
                     isIn = false;
@@ -310,7 +309,6 @@ namespace metrics
                     for (int s = 0; s < 2; s++)
                     {
                         t = tInt[6 * (n / 2 + 1) * k + 6 * j + s + 4];
-                        // cout << "hui " << 6 * (n / 2 + 1) * k + 6 * j + s + 4 << " " << t << " " << i << endl;
                         if (t < 0)
                             break;
                         dP = 2 * t * (vel.mag2());
@@ -424,7 +422,6 @@ namespace metrics
             // data->gradMin[2 * i + 1] += (data->r[n + 1] - data->endPos) ^ data->dR[n + 1] * 2 / (MAX_VEL * MAX_VEL);
             data->gradCon[2 * n + 2 * i + 1] *= (MAX_ACC / MAX_VEL);
             data->gradMin[2 * i + 1] *= (MAX_ACC / MAX_VEL);
-            // cout << "hui" << endl;
             // if (i == 0) {
             //     cout << "bebe: " << dV[5] << " " << (dV[2] + dV[3]) * (t[6] - t[4]) / 2 << endl;
             //     // cout << dV[2] << " " << dV[3] << endl;
@@ -450,7 +447,7 @@ namespace metrics
             // {
             //     if (abs((grad[i] - data->gradMin[i]) / grad[i]) > 0.1) // && abs(grad[i]) > 0.02)
             //     {
-            //         cout << "PIZDA MIN " << grad[i] << " " << data->gradMin[i] << " " << i << endl;
+            //         cout << "INCORRECT MIN " << grad[i] << " " << data->gradMin[i] << " " << i << endl;
             //         for (int j = 0; j < int(n); j++) {
             //             cout << x[j] << " ";
             //         }
@@ -465,7 +462,6 @@ namespace metrics
                 grad[i] = data->gradMin[i];
             }
         }
-
         return data->resultMin;
     }
 
@@ -491,7 +487,7 @@ namespace metrics
             // {
             //     if (abs((grad[i] - data->gradCon[i]) / grad[i]) > 0.02)
             //     {
-            //         cout << "PIZDA " << grad[i] << " " << data->gradCon[i] << " " << i << endl;
+            //         cout << "INCORRECT " << grad[i] << " " << data->gradCon[i] << " " << i << endl;
             //         // for (int j = 0; j < int(n); j++) {
             //         //     cout << x[j] << " ";
             //         // }

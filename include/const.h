@@ -9,7 +9,7 @@
 #define SAFE_DIST 20
 //idk
 #define MAX_ROBOT_COUNT 16
-#define MAX_SOLVER_DEGREE 10  
+#define N_SOLVER_PAIRS 8
 #define K_INTERSECT 10
 //geometry
 #define ROBOT_R 100.0
